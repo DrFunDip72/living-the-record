@@ -1,0 +1,100 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/FleeHideGame.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/Guard.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/Player.gd" id="3"]
+
+[sub_resource type="RectangleShape2D" id="RectShape1"]
+size = Vector2(100, 80)
+
+[sub_resource type="CircleShape2D" id="CircleShape1"]
+radius = 12.0
+
+[node name="MiniGameFleeHide" type="Node2D"]
+script = ExtResource("1")
+
+[node name="Background" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.1, 0.08, 0.05, 1)
+
+[node name="StatusLabel" type="Label" parent="."]
+anchor_right = 1.0
+offset_top = 12.0
+offset_bottom = 50.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 18
+text = "Reach the Waters of Mormon without being seen. Arrow keys / WASD to move."
+
+[node name="SafeZone" type="Area2D" parent="."]
+position = Vector2(880, 70)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SafeZone"]
+shape = SubResource("RectShape1")
+
+[node name="Marker" type="ColorRect" parent="SafeZone"]
+offset_left = -50.0
+offset_top = -40.0
+offset_right = 50.0
+offset_bottom = 40.0
+color = Color(0.3, 0.6, 0.9, 0.6)
+
+[node name="Guards" type="Node2D" parent="."]
+
+[node name="Guard1" type="Node2D" parent="Guards"]
+position = Vector2(200, 200)
+script = ExtResource("2")
+left_x = 150.0
+right_x = 650.0
+
+[node name="Body" type="ColorRect" parent="Guards/Guard1"]
+offset_left = -12.0
+offset_top = -12.0
+offset_right = 12.0
+offset_bottom = 12.0
+color = Color(0.7, 0.15, 0.15, 1)
+
+[node name="Vision" type="Area2D" parent="Guards/Guard1"]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Guards/Guard1/Vision"]
+polygon = PackedVector2Array(0, 0, 150, -70, 150, 70)
+
+[node name="Polygon2D" type="Polygon2D" parent="Guards/Guard1/Vision"]
+polygon = PackedVector2Array(0, 0, 150, -70, 150, 70)
+color = Color(1, 1, 0.3, 0.25)
+
+[node name="Guard2" type="Node2D" parent="Guards"]
+position = Vector2(500, 380)
+script = ExtResource("2")
+left_x = 300.0
+right_x = 850.0
+
+[node name="Body" type="ColorRect" parent="Guards/Guard2"]
+offset_left = -12.0
+offset_top = -12.0
+offset_right = 12.0
+offset_bottom = 12.0
+color = Color(0.7, 0.15, 0.15, 1)
+
+[node name="Vision" type="Area2D" parent="Guards/Guard2"]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Guards/Guard2/Vision"]
+polygon = PackedVector2Array(0, 0, 150, -70, 150, 70)
+
+[node name="Polygon2D" type="Polygon2D" parent="Guards/Guard2/Vision"]
+polygon = PackedVector2Array(0, 0, 150, -70, 150, 70)
+color = Color(1, 1, 0.3, 0.25)
+
+[node name="Player" type="CharacterBody2D" parent="."]
+position = Vector2(80, 480)
+script = ExtResource("3")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
+shape = SubResource("CircleShape1")
+
+[node name="Body" type="ColorRect" parent="Player"]
+offset_left = -12.0
+offset_top = -12.0
+offset_right = 12.0
+offset_bottom = 12.0
+color = Color(0.2, 0.4, 0.9, 1)
