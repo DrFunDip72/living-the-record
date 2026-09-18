@@ -8,7 +8,19 @@ func _ready() -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	var dir := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+	var x := Input.get_axis("ui_left", "ui_right")
+	var y := Input.get_axis("ui_up", "ui_down")
+	if Input.is_key_pressed(KEY_A):
+		x -= 1.0
+	if Input.is_key_pressed(KEY_D):
+		x += 1.0
+	if Input.is_key_pressed(KEY_W):
+		y -= 1.0
+	if Input.is_key_pressed(KEY_S):
+		y += 1.0
+	var dir := Vector2(x, y)
+	if dir.length() > 1.0:
+		dir = dir.normalized()
 	velocity = dir * speed
 	move_and_slide()
 	position.x = clamp(position.x, 20.0, 940.0)
