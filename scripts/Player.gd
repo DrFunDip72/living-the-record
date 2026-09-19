@@ -1,6 +1,7 @@
 extends CharacterBody2D
 
 @export var speed: float = 220.0
+var last_direction: Vector2 = Vector2.DOWN
 
 
 func _ready() -> void:
@@ -21,6 +22,8 @@ func _physics_process(_delta: float) -> void:
 	var dir := Vector2(x, y)
 	if dir.length() > 1.0:
 		dir = dir.normalized()
+	if dir.length() > 0.1:
+		last_direction = dir.normalized()
 	velocity = dir * speed
 	move_and_slide()
 	position.x = clamp(position.x, 20.0, 940.0)

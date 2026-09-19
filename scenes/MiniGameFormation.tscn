@@ -13,20 +13,14 @@ script = ExtResource("1")
 [node name="Background" type="ColorRect" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_right = 960.0
+offset_bottom = 540.0
 color = Color(0.13, 0.28, 0.12, 1)
-
-[node name="HintLabel" type="Label" parent="."]
-anchor_right = 1.0
-offset_top = 6.0
-offset_bottom = 30.0
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 15
-text = "You are the gold warrior. Move (arrows / WASD) into the lit zone before time runs out."
 
 [node name="AlliesContainer" type="Node2D" parent="."]
 
 [node name="Ally1" type="Node2D" parent="AlliesContainer"]
-position = Vector2(160, 180)
+position = Vector2(120, 180)
 script = ExtResource("2")
 
 [node name="Shape" type="Polygon2D" parent="AlliesContainer/Ally1"]
@@ -34,7 +28,7 @@ polygon = PackedVector2Array(0, -10, 7, 0, 0, 10, -7, 0)
 color = Color(0.3, 0.45, 0.85, 1)
 
 [node name="Ally2" type="Node2D" parent="AlliesContainer"]
-position = Vector2(220, 130)
+position = Vector2(170, 130)
 script = ExtResource("2")
 
 [node name="Shape" type="Polygon2D" parent="AlliesContainer/Ally2"]
@@ -42,7 +36,7 @@ polygon = PackedVector2Array(0, -10, 7, 0, 0, 10, -7, 0)
 color = Color(0.3, 0.45, 0.85, 1)
 
 [node name="Ally3" type="Node2D" parent="AlliesContainer"]
-position = Vector2(150, 320)
+position = Vector2(110, 340)
 script = ExtResource("2")
 
 [node name="Shape" type="Polygon2D" parent="AlliesContainer/Ally3"]
@@ -50,99 +44,19 @@ polygon = PackedVector2Array(0, -10, 7, 0, 0, 10, -7, 0)
 color = Color(0.3, 0.45, 0.85, 1)
 
 [node name="Ally4" type="Node2D" parent="AlliesContainer"]
-position = Vector2(230, 400)
+position = Vector2(170, 400)
 script = ExtResource("2")
 
 [node name="Shape" type="Polygon2D" parent="AlliesContainer/Ally4"]
 polygon = PackedVector2Array(0, -10, 7, 0, 0, 10, -7, 0)
 color = Color(0.3, 0.45, 0.85, 1)
 
-[node name="Ally5" type="Node2D" parent="AlliesContainer"]
-position = Vector2(310, 210)
-script = ExtResource("2")
-
-[node name="Shape" type="Polygon2D" parent="AlliesContainer/Ally5"]
-polygon = PackedVector2Array(0, -10, 7, 0, 0, 10, -7, 0)
-color = Color(0.3, 0.45, 0.85, 1)
-
-[node name="Ally6" type="Node2D" parent="AlliesContainer"]
-position = Vector2(310, 350)
-script = ExtResource("2")
-
-[node name="Shape" type="Polygon2D" parent="AlliesContainer/Ally6"]
-polygon = PackedVector2Array(0, -10, 7, 0, 0, 10, -7, 0)
-color = Color(0.3, 0.45, 0.85, 1)
-
-[node name="EnemiesContainer" type="Node2D" parent="."]
-
-[node name="Enemy1" type="Node2D" parent="EnemiesContainer"]
-position = Vector2(760, 180)
-script = ExtResource("2")
-
-[node name="Shape" type="Polygon2D" parent="EnemiesContainer/Enemy1"]
-polygon = PackedVector2Array(0, -10, 7, 0, 0, 10, -7, 0)
-color = Color(0.8, 0.25, 0.25, 1)
-
-[node name="Enemy2" type="Node2D" parent="EnemiesContainer"]
-position = Vector2(820, 130)
-script = ExtResource("2")
-
-[node name="Shape" type="Polygon2D" parent="EnemiesContainer/Enemy2"]
-polygon = PackedVector2Array(0, -10, 7, 0, 0, 10, -7, 0)
-color = Color(0.8, 0.25, 0.25, 1)
-
-[node name="Enemy3" type="Node2D" parent="EnemiesContainer"]
-position = Vector2(760, 320)
-script = ExtResource("2")
-
-[node name="Shape" type="Polygon2D" parent="EnemiesContainer/Enemy3"]
-polygon = PackedVector2Array(0, -10, 7, 0, 0, 10, -7, 0)
-color = Color(0.8, 0.25, 0.25, 1)
-
-[node name="Enemy4" type="Node2D" parent="EnemiesContainer"]
-position = Vector2(830, 400)
-script = ExtResource("2")
-
-[node name="Shape" type="Polygon2D" parent="EnemiesContainer/Enemy4"]
-polygon = PackedVector2Array(0, -10, 7, 0, 0, 10, -7, 0)
-color = Color(0.8, 0.25, 0.25, 1)
-
-[node name="Enemy5" type="Node2D" parent="EnemiesContainer"]
-position = Vector2(700, 220)
-script = ExtResource("2")
-
-[node name="Shape" type="Polygon2D" parent="EnemiesContainer/Enemy5"]
-polygon = PackedVector2Array(0, -10, 7, 0, 0, 10, -7, 0)
-color = Color(0.8, 0.25, 0.25, 1)
-
-[node name="Enemy6" type="Node2D" parent="EnemiesContainer"]
-position = Vector2(700, 350)
-script = ExtResource("2")
-
-[node name="Shape" type="Polygon2D" parent="EnemiesContainer/Enemy6"]
-polygon = PackedVector2Array(0, -10, 7, 0, 0, 10, -7, 0)
-color = Color(0.8, 0.25, 0.25, 1)
-
 [node name="Commander" type="Node2D" parent="."]
-position = Vector2(150, 270)
+position = Vector2(80, 270)
 
 [node name="Shape" type="Polygon2D" parent="Commander"]
 polygon = PackedVector2Array(0, -18, 13, 0, 0, 18, -13, 0)
-color = Color(0.9, 0.75, 0.2, 1)
-
-[node name="OrderBubble" type="Label" parent="Commander"]
-offset_left = -110.0
-offset_top = -60.0
-offset_right = 110.0
-offset_bottom = -22.0
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 22
-text = "HOLD THE LINE!"
-
-[node name="Zone" type="ColorRect" parent="."]
-position = Vector2(475, 225)
-size = Vector2(90, 90)
-color = Color(1, 1, 1, 0.28)
+color = Color(0.85, 0.85, 0.9, 1)
 
 [node name="Player" type="CharacterBody2D" parent="."]
 position = Vector2(250, 270)
@@ -155,22 +69,33 @@ shape = SubResource("PlayerCircle")
 polygon = PackedVector2Array(0, -14, 10, 0, 0, 14, -10, 0)
 color = Color(1.0, 0.85, 0.2, 1)
 
-[node name="StatusLabel" type="Label" parent="."]
-anchor_top = 0.9
+[node name="EnemiesContainer" type="Node2D" parent="."]
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="HintLabel" type="Label" parent="UI"]
 anchor_right = 1.0
-anchor_bottom = 0.98
+offset_top = 6.0
+offset_bottom = 28.0
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 18
-text = "Mistakes: 0 / 2 allowed"
+theme_override_font_sizes/font_size = 15
+text = "WASD / Arrows to move. SPACE to swing your sword."
 
-[node name="TimerBar" type="ProgressBar" parent="."]
-anchor_left = 0.35
-anchor_top = 0.82
-anchor_right = 0.65
-anchor_bottom = 0.87
-step = 0.01
-show_percentage = false
+[node name="OrderBubble" type="Label" parent="UI"]
+anchor_right = 1.0
+offset_top = 34.0
+offset_bottom = 68.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 26
+text = "HOLD THE LINE!"
 
-[node name="SparkTimer" type="Timer" parent="."]
-wait_time = 0.25
-autostart = true
+[node name="HPLabel" type="Label" parent="UI"]
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -34.0
+offset_bottom = -8.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
+text = "HP: #####"

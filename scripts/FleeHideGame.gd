@@ -6,7 +6,7 @@ var finished: bool = false
 
 @onready var safe_zone: Area2D = $SafeZone
 @onready var guards: Node2D = $Guards
-@onready var status_label: Label = $StatusLabel
+@onready var status_label: Label = $UI/StatusLabel
 
 
 func _ready() -> void:

@@ -19,9 +19,13 @@ script = ExtResource("1")
 [node name="Background" type="ColorRect" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_right = 960.0
+offset_bottom = 540.0
 color = Color(0.1, 0.08, 0.05, 1)
 
-[node name="StatusLabel" type="Label" parent="."]
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="StatusLabel" type="Label" parent="UI"]
 anchor_right = 1.0
 offset_top = 8.0
 offset_bottom = 40.0

@@ -2,93 +2,112 @@ extends Node2D
 
 signal game_finished(won: bool)
 
-const COMMANDS := [
-	{"name": "HOLD THE LINE!", "pos": Vector2(520, 270), "size": Vector2(90, 90)},
-	{"name": "ADVANCE!", "pos": Vector2(650, 270), "size": Vector2(90, 90)},
-	{"name": "FALL BACK!", "pos": Vector2(190, 270), "size": Vector2(100, 100)},
-	{"name": "FLANK LEFT!", "pos": Vector2(460, 110), "size": Vector2(100, 100)},
-	{"name": "FLANK RIGHT!", "pos": Vector2(460, 440), "size": Vector2(100, 100)},
+const ENEMY_SCENE_PATH := "res://scenes/Enemy.tscn"
+const MAX_HP := 5
+const ATTACK_COOLDOWN := 0.35
+const ATTACK_RANGE := 50.0
+
+var hp: int = MAX_HP
+var attack_cooldown_timer: float = 0.0
+var phase: int = 0
+var finished: bool = false
+var enemy_scene: PackedScene
+
+var phases := [
+	{"name": "HOLD THE LINE!", "count": 3, "spawn_rect": Rect2(680, 120, 220, 320)},
+	{"name": "ADVANCE!", "count": 4, "spawn_rect": Rect2(760, 90, 220, 380)},
 ]
 
-const TOTAL_COMMANDS := 7
-const MAX_MISTAKES := 2
-const TIME_WINDOW := 2.2
-
-var sequence: Array = []
-var current_step: int = 0
-var mistakes: int = 0
-var time_left: float = 0.0
-var awaiting: bool = false
-var finished: bool = false
-
 @onready var player: CharacterBody2D = $Player
-@onready var order_label: Label = $Commander/OrderBubble
-@onready var status_label: Label = $StatusLabel
-@onready var timer_bar: ProgressBar = $TimerBar
-@onready var zone: ColorRect = $Zone
-@onready var spark_timer: Timer = $SparkTimer
+@onready var order_label: Label = $UI/OrderBubble
+@onready var hp_label: Label = $UI/HPLabel
+@onready var hint_label: Label = $UI/HintLabel
+@onready var enemies_container: Node2D = $EnemiesContainer
 
 
 func _ready() -> void:
-	randomize()
-	for i in range(TOTAL_COMMANDS):
-		sequence.append(COMMANDS[randi() % COMMANDS.size()])
-	status_label.text = "Mistakes: 0 / %d allowed" % MAX_MISTAKES
-	spark_timer.timeout.connect(_spawn_spark)
-	_next_command()
+	enemy_scene = load(ENEMY_SCENE_PATH)
+	hint_label.text = "WASD / Arrows to move. SPACE to swing your sword."
+	_update_hp_label()
+	_start_phase()
 
 
-func _next_command() -> void:
-	if current_step >= sequence.size():
-		_finish(true)
-		return
-	var cmd: Dictionary = sequence[current_step]
-	order_label.text = cmd["name"]
-	zone.position = cmd["pos"] - cmd["size"] / 2.0
-	zone.size = cmd["size"]
-	zone.color = Color(1, 1, 1, 0.28)
-	time_left = TIME_WINDOW
-	timer_bar.max_value = TIME_WINDOW
-	timer_bar.value = TIME_WINDOW
-	awaiting = true
+func _start_phase() -> void:
+	var p: Dictionary = phases[phase]
+	order_label.text = p["name"]
+	var rect: Rect2 = p["spawn_rect"]
+	for i in range(p["count"]):
+		var e := enemy_scene.instantiate()
+		e.position = Vector2(
+			randf_range(rect.position.x, rect.position.x + rect.size.x),
+			randf_range(rect.position.y, rect.position.y + rect.size.y)
+		)
+		enemies_container.add_child(e)
+		e.setup(player)
+		e.defeated.connect(_on_enemy_defeated)
+		e.hit_target.connect(_on_player_hit)
 
 
 func _physics_process(delta: float) -> void:
-	if finished or not awaiting:
-		return
-	time_left -= delta
-	timer_bar.value = max(time_left, 0.0)
-
-	var cmd: Dictionary = sequence[current_step]
-	var rect := Rect2(cmd["pos"] - cmd["size"] / 2.0, cmd["size"])
-	var in_zone := rect.has_point(player.position)
-
-	if in_zone:
-		zone.color = Color(0.3, 1.0, 0.3, 0.5)
-		awaiting = false
-		current_step += 1
-		get_tree().create_timer(0.2).timeout.connect(_next_command)
-	elif time_left <= 0.0:
-		zone.color = Color(1.0, 0.3, 0.3, 0.5)
-		awaiting = false
-		mistakes += 1
-		status_label.text = "Mistakes: %d / %d allowed" % [mistakes, MAX_MISTAKES]
-		if mistakes > MAX_MISTAKES:
-			get_tree().create_timer(0.35).timeout.connect(func(): _finish(false))
-		else:
-			current_step += 1
-			get_tree().create_timer(0.35).timeout.connect(_next_command)
-
-
-func _spawn_spark() -> void:
 	if finished:
 		return
-	var spark := ColorRect.new()
-	spark.size = Vector2(10, 10)
-	spark.color = Color(1, 1, 0.6, 0.9)
-	spark.position = Vector2(randf_range(500, 620), randf_range(120, 420))
-	add_child(spark)
-	get_tree().create_timer(0.15).timeout.connect(spark.queue_free)
+	attack_cooldown_timer = max(0.0, attack_cooldown_timer - delta)
+	if Input.is_action_just_pressed("ui_accept") or Input.is_key_pressed(KEY_SPACE):
+		_try_attack()
+
+
+func _try_attack() -> void:
+	if attack_cooldown_timer > 0.0:
+		return
+	attack_cooldown_timer = ATTACK_COOLDOWN
+	var facing: Vector2 = player.last_direction
+	for e in enemies_container.get_children():
+		if not is_instance_valid(e):
+			continue
+		var to_e: Vector2 = e.global_position - player.global_position
+		if to_e.length() <= ATTACK_RANGE and facing.dot(to_e.normalized()) > 0.3:
+			e.take_damage(1, player.global_position)
+	_spawn_swing_fx(facing)
+
+
+func _spawn_swing_fx(facing: Vector2) -> void:
+	var fx := Polygon2D.new()
+	var angle: float = facing.angle()
+	var points := PackedVector2Array()
+	points.append(Vector2.ZERO)
+	for a in range(-3, 4):
+		var ang: float = angle + a * 0.15
+		points.append(Vector2(cos(ang), sin(ang)) * ATTACK_RANGE)
+	fx.polygon = points
+	fx.color = Color(1, 1, 0.8, 0.55)
+	fx.position = player.position
+	add_child(fx)
+	get_tree().create_timer(0.12).timeout.connect(fx.queue_free)
+
+
+func _on_player_hit(amount: int) -> void:
+	if finished:
+		return
+	hp -= amount
+	_update_hp_label()
+	if hp <= 0:
+		_finish(false)
+
+
+func _update_hp_label() -> void:
+	hp_label.text = "HP: " + "#".repeat(max(hp, 0)) + "-".repeat(max(MAX_HP - hp, 0))
+
+
+func _on_enemy_defeated() -> void:
+	await get_tree().process_frame
+	if finished:
+		return
+	if enemies_container.get_child_count() == 0:
+		phase += 1
+		if phase >= phases.size():
+			_finish(true)
+		else:
+			_start_phase()
 
 
 func _finish(won: bool) -> void:
