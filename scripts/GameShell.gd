@@ -23,7 +23,7 @@ var current_instance: Node = null
 func _ready() -> void:
 	level = Game.get_level(Game.current_level_id)
 	if level.is_empty():
-		get_tree().call_deferred("change_scene_to_file", "res://scenes/LevelSelect.tscn")
+		Transition.goto_scene("res://scenes/LevelSelect.tscn")
 		return
 	play_button.pressed.connect(_on_play_pressed)
 	play_again_button.pressed.connect(_on_play_pressed)
@@ -100,4 +100,4 @@ func _on_play_pressed() -> void:
 
 func _on_menu_pressed() -> void:
 	get_tree().paused = false
-	get_tree().change_scene_to_file("res://scenes/LevelSelect.tscn")
+	Transition.goto_scene("res://scenes/LevelSelect.tscn")

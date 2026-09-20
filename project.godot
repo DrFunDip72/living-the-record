@@ -12,6 +12,7 @@ config/features=PackedStringArray("4.7", "GL Compatibility")
 Game="*res://scripts/autoload/Game.gd"
 HighScores="*res://scripts/autoload/HighScores.gd"
 Fx="*res://scripts/autoload/Fx.gd"
+Transition="*res://scripts/autoload/Transition.gd"
 
 [gui]
 

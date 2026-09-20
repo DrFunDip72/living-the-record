@@ -15,7 +15,7 @@ func _ready() -> void:
 
 func _rebuild() -> void:
 	fill.polygon = _diamond(radius)
-	outline.polygon = _diamond(radius * 1.28)
+	outline.polygon = _diamond(radius * 1.45)
 	shadow.polygon = _diamond(radius * 0.9)
 	fill.color = fill_color
 	outline.color = outline_color
@@ -43,3 +43,10 @@ func flash_white(duration: float = 0.1) -> void:
 		if is_instance_valid(fill):
 			fill.color = original
 	)
+	pop()
+
+
+func pop(strength: float = 1.35) -> void:
+	var tw := create_tween()
+	tw.tween_property(self, "scale", Vector2(strength, strength) * 0.85, 0.05)
+	tw.tween_property(self, "scale", Vector2(1, 1), 0.12).set_trans(Tween.TRANS_BACK)

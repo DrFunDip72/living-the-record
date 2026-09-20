@@ -12,6 +12,8 @@ var levels: Array = [
 		"after": "The stripling warriors survived because they trusted their leaders completely and obeyed exactly -- even without seeing the whole battlefield.\n\nWhere in your own life do you follow counsel exactly, even when you don't see the full picture? Where do you \"almost\" obey?",
 		"lose_text": "A moment's hesitation broke the line. In the real battle, this was the difference between life and death.\n\nTry again -- exactness has no partial credit.",
 		"score_key": "",
+		"color": Color(0.78, 0.6, 0.18, 1),
+		"monogram": "SW",
 	},
 	{
 		"id": "flee_hide",
@@ -21,6 +23,8 @@ var levels: Array = [
 		"after": "Alma's people didn't just believe quietly -- they made a public covenant, then paid a real price for it: exile, fear, running for their lives.\n\nWhat has a real commitment ever cost you? Was it worth it?",
 		"lose_text": "The guards found you. For Alma's people, discovery meant death.\n\nTry again -- slip past unseen.",
 		"score_key": "",
+		"color": Color(0.22, 0.42, 0.55, 1),
+		"monogram": "AF",
 	},
 ]
 
@@ -36,4 +40,4 @@ func get_level(id: String) -> Dictionary:
 
 func start_level(id: String) -> void:
 	current_level_id = id
-	get_tree().change_scene_to_file("res://scenes/GameShell.tscn")
+	Transition.goto_scene("res://scenes/GameShell.tscn")

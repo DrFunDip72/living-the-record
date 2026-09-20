@@ -8,7 +8,7 @@ extends Node2D
 
 
 func _ready() -> void:
-	play_button.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/LevelSelect.tscn"))
+	play_button.pressed.connect(func(): Transition.goto_scene("res://scenes/LevelSelect.tscn"))
 	about_button.pressed.connect(func(): about_panel.visible = true)
 	about_close.pressed.connect(func(): about_panel.visible = false)
 	about_panel.visible = false
