@@ -1,12 +1,13 @@
 extends Node2D
 
-signal game_finished(won: bool)
+signal game_finished(won: bool, score: int)
 
 var finished: bool = false
 
 @onready var safe_zone: Area2D = $SafeZone
 @onready var guards: Node2D = $Guards
 @onready var status_label: Label = $UI/StatusLabel
+@onready var camera: Camera2D = $Player/Camera2D
 
 
 func _ready() -> void:
@@ -22,6 +23,7 @@ func _on_safe_zone_entered(body: Node) -> void:
 
 func _on_spotted() -> void:
 	if not finished:
+		camera.shake(0.7)
 		_finish(false)
 
 
@@ -32,4 +34,4 @@ func _finish(won: bool) -> void:
 	flash.anchor_right = 1.0
 	flash.anchor_bottom = 1.0
 	add_child(flash)
-	get_tree().create_timer(0.35).timeout.connect(func(): game_finished.emit(won))
+	get_tree().create_timer(0.35).timeout.connect(func(): game_finished.emit(won, -1))

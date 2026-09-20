@@ -4,8 +4,18 @@ config_version=5
 [application]
 
 config/name="Living the Record"
-run/main_scene="res://scenes/Main.tscn"
+run/main_scene="res://scenes/Title.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
+
+[autoload]
+
+Game="*res://scripts/autoload/Game.gd"
+HighScores="*res://scripts/autoload/HighScores.gd"
+Fx="*res://scripts/autoload/Fx.gd"
+
+[gui]
+
+theme/custom="res://theme/GameTheme.tres"
 
 [display]
 

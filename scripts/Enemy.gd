@@ -14,7 +14,7 @@ var attack_timer: float = 0.0
 var knockback: Vector2 = Vector2.ZERO
 var target: Node2D = null
 
-@onready var shape: Polygon2D = $Shape
+@onready var visual: Node2D = $Visual
 
 
 func _ready() -> void:
@@ -47,11 +47,8 @@ func _physics_process(delta: float) -> void:
 func take_damage(amount: int, from_pos: Vector2) -> void:
 	hp -= amount
 	knockback = (global_position - from_pos).normalized() * 220.0
-	shape.color = Color(1, 1, 1, 1)
-	get_tree().create_timer(0.1).timeout.connect(func():
-		if is_instance_valid(shape):
-			shape.color = Color(0.8, 0.25, 0.25, 1)
-	)
+	visual.flash_white()
+	Fx.spawn_hit_burst(get_parent(), global_position, Color(0.85, 0.2, 0.2, 1), 10)
 	if hp <= 0:
 		defeated.emit()
 		queue_free()

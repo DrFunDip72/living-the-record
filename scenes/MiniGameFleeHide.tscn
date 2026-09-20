@@ -1,8 +1,11 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/FleeHideGame.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/Guard.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/Player.gd" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/common/UnitShape.tscn" id="4"]
+[ext_resource type="Script" path="res://scripts/common/JuiceCamera.gd" id="5"]
+[ext_resource type="Material" path="res://shaders/ForestMaterial.tres" id="6"]
 
 [sub_resource type="RectangleShape2D" id="RectShape1"]
 size = Vector2(100, 80)
@@ -21,7 +24,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 offset_right = 960.0
 offset_bottom = 540.0
-color = Color(0.1, 0.08, 0.05, 1)
+material = ExtResource("6")
+color = Color(1, 1, 1, 1)
 
 [node name="UI" type="CanvasLayer" parent="."]
 
@@ -132,12 +136,10 @@ script = ExtResource("2")
 left_x = 150.0
 right_x = 650.0
 
-[node name="Body" type="ColorRect" parent="Guards/Guard1"]
-offset_left = -12.0
-offset_top = -12.0
-offset_right = 12.0
-offset_bottom = 12.0
-color = Color(0.7, 0.15, 0.15, 1)
+[node name="Visual" parent="Guards/Guard1" instance=ExtResource("4")]
+fill_color = Color(0.75, 0.18, 0.18, 1)
+outline_color = Color(0.3, 0.05, 0.05, 1)
+radius = 12.0
 
 [node name="AlertLabel" type="Label" parent="Guards/Guard1"]
 offset_left = -10.0
@@ -163,12 +165,10 @@ script = ExtResource("2")
 left_x = 300.0
 right_x = 850.0
 
-[node name="Body" type="ColorRect" parent="Guards/Guard2"]
-offset_left = -12.0
-offset_top = -12.0
-offset_right = 12.0
-offset_bottom = 12.0
-color = Color(0.7, 0.15, 0.15, 1)
+[node name="Visual" parent="Guards/Guard2" instance=ExtResource("4")]
+fill_color = Color(0.75, 0.18, 0.18, 1)
+outline_color = Color(0.3, 0.05, 0.05, 1)
+radius = 12.0
 
 [node name="AlertLabel" type="Label" parent="Guards/Guard2"]
 offset_left = -10.0
@@ -196,9 +196,17 @@ script = ExtResource("3")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
 shape = SubResource("CircleShape1")
 
-[node name="Body" type="ColorRect" parent="Player"]
-offset_left = -12.0
-offset_top = -12.0
-offset_right = 12.0
-offset_bottom = 12.0
-color = Color(0.2, 0.4, 0.9, 1)
+[node name="Visual" parent="Player" instance=ExtResource("4")]
+fill_color = Color(0.25, 0.45, 0.92, 1)
+outline_color = Color(0.05, 0.15, 0.4, 1)
+radius = 12.0
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+script = ExtResource("5")
+zoom = Vector2(0.85, 0.85)
+limit_left = 0
+limit_top = 0
+limit_right = 960
+limit_bottom = 540
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0

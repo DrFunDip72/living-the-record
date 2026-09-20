@@ -1,0 +1,99 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/GameShell.gd" id="1"]
+
+[node name="GameShell" type="Node2D"]
+script = ExtResource("1")
+
+[node name="GameplayRoot" type="Node2D" parent="."]
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Background" type="ColorRect" parent="UI"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 960.0
+offset_bottom = 540.0
+color = Color(0.05, 0.05, 0.08, 0.95)
+
+[node name="TitleLabel" type="Label" parent="UI"]
+anchor_right = 1.0
+offset_top = 30.0
+offset_bottom = 80.0
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 1
+text = "Living the Record"
+
+[node name="BodyLabel" type="RichTextLabel" parent="UI"]
+anchor_left = 0.12
+anchor_top = 0.2
+anchor_right = 0.88
+anchor_bottom = 0.72
+theme_override_font_sizes/normal_font_size = 18
+bbcode_enabled = false
+scroll_active = true
+
+[node name="ScoreLabel" type="Label" parent="UI"]
+anchor_left = 0.1
+anchor_top = 0.73
+anchor_right = 0.9
+anchor_bottom = 0.8
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 20
+visible = false
+text = "Score: 0   Best: 0"
+
+[node name="PlayButton" type="Button" parent="UI"]
+anchor_left = 0.38
+anchor_top = 0.85
+anchor_right = 0.62
+anchor_bottom = 0.93
+text = "Play"
+
+[node name="EndButtons" type="HBoxContainer" parent="UI"]
+anchor_left = 0.25
+anchor_top = 0.85
+anchor_right = 0.75
+anchor_bottom = 0.93
+alignment = 1
+visible = false
+
+[node name="PlayAgainButton" type="Button" parent="UI/EndButtons"]
+custom_minimum_size = Vector2(180, 0)
+text = "Play Again"
+
+[node name="MenuButton" type="Button" parent="UI/EndButtons"]
+custom_minimum_size = Vector2(180, 0)
+text = "Back to Menu"
+
+[node name="PauseOverlay" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="Dim" type="ColorRect" parent="PauseOverlay"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 960.0
+offset_bottom = 540.0
+color = Color(0.02, 0.02, 0.03, 0.75)
+
+[node name="PausedLabel" type="Label" parent="PauseOverlay"]
+anchor_right = 1.0
+offset_top = 180.0
+offset_bottom = 230.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 30
+text = "Paused"
+
+[node name="ResumeButton" type="Button" parent="PauseOverlay"]
+anchor_left = 0.38
+anchor_top = 0.5
+anchor_right = 0.62
+anchor_bottom = 0.58
+text = "Resume"
+
+[node name="QuitButton" type="Button" parent="PauseOverlay"]
+anchor_left = 0.38
+anchor_top = 0.62
+anchor_right = 0.62
+anchor_bottom = 0.7
+text = "Back to Menu"
