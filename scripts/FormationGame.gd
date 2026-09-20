@@ -5,23 +5,30 @@ signal game_finished(won: bool, score: int)
 const MAX_HP := 5
 const ATTACK_COOLDOWN := 0.35
 const ATTACK_RANGE := 50.0
+const FORMATION_RADIUS := 170.0
 
 var hp: int = MAX_HP
 var attack_cooldown_timer: float = 0.0
 var finished: bool = false
+var _mouse_was_pressed: bool = false
 
 @onready var player: CharacterBody2D = $Player
 @onready var camera: Camera2D = $Player/Camera2D
+@onready var commander: Node2D = $Commander
+@onready var allies_container: Node2D = $AlliesContainer
 @onready var order_label: Label = $UI/OrderBubble
-@onready var hp_label: Label = $UI/HPLabel
+@onready var hp_bar: ProgressBar = $UI/HPBar
+@onready var hp_number: Label = $UI/HPBar/HPNumber
+@onready var formation_label: Label = $UI/FormationLabel
 @onready var hint_label: Label = $UI/HintLabel
 @onready var enemies_container: Node2D = $EnemiesContainer
 @onready var wave_spawner: Node = $WaveSpawner
 
 
 func _ready() -> void:
-	hint_label.text = "WASD / Arrows to move. SPACE to swing your sword."
-	_update_hp_label()
+	hint_label.text = "Move the mouse to lead your warrior. Click to swing your sword."
+	hp_bar.max_value = MAX_HP
+	_update_hp_display()
 
 	wave_spawner.enemy_scene = preload("res://scenes/Enemy.tscn")
 	wave_spawner.mode = "fixed"
@@ -48,9 +55,24 @@ func _on_wave_cleared(_wave_index: int) -> void:
 func _physics_process(delta: float) -> void:
 	if finished:
 		return
+
 	attack_cooldown_timer = max(0.0, attack_cooldown_timer - delta)
-	if Input.is_action_just_pressed("ui_accept") or Input.is_key_pressed(KEY_SPACE):
+	var mouse_pressed := Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	var mouse_just_pressed := mouse_pressed and not _mouse_was_pressed
+	_mouse_was_pressed = mouse_pressed
+	if Input.is_action_just_pressed("ui_accept") or Input.is_key_pressed(KEY_SPACE) or mouse_just_pressed:
 		_try_attack()
+
+	var in_formation: bool = player.global_position.distance_to(commander.global_position) <= FORMATION_RADIUS
+	for ally in allies_container.get_children():
+		if ally.has_method("set_buffed"):
+			ally.set_buffed(in_formation)
+	if in_formation:
+		formation_label.text = "Holding Formation -- your line fights harder"
+		formation_label.add_theme_color_override("font_color", Color(0.55, 1.0, 0.55, 1))
+	else:
+		formation_label.text = "Out of Formation -- your line is weaker without you"
+		formation_label.add_theme_color_override("font_color", Color(1.0, 0.7, 0.3, 1))
 
 
 func _try_attack() -> void:
@@ -87,18 +109,34 @@ func _spawn_swing_fx(facing: Vector2) -> void:
 	get_tree().create_timer(0.12).timeout.connect(fx.queue_free)
 
 
-func _on_player_hit(amount: int) -> void:
+func _on_player_hit(amount: int, from_pos: Vector2) -> void:
 	if finished:
 		return
 	hp -= amount
-	_update_hp_label()
-	camera.shake(0.6)
+	_update_hp_display()
+	camera.shake(0.8)
+	Fx.hit_stop(0.05)
+	player.apply_knockback((player.global_position - from_pos).normalized(), 200.0)
+	_flash_damage()
 	if hp <= 0:
 		_finish(false)
 
 
-func _update_hp_label() -> void:
-	hp_label.text = "HP: " + "#".repeat(max(hp, 0)) + "-".repeat(max(MAX_HP - hp, 0))
+func _flash_damage() -> void:
+	var flash := ColorRect.new()
+	flash.color = Color(1.0, 0.15, 0.1, 0.55)
+	flash.anchor_right = 1.0
+	flash.anchor_bottom = 1.0
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	$UI.add_child(flash)
+	var tw := create_tween()
+	tw.tween_property(flash, "modulate:a", 0.0, 0.25)
+	tw.tween_callback(flash.queue_free)
+
+
+func _update_hp_display() -> void:
+	hp_bar.value = max(hp, 0)
+	hp_number.text = "%d / %d" % [max(hp, 0), MAX_HP]
 
 
 func _finish(won: bool) -> void:

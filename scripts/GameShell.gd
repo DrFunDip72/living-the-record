@@ -90,7 +90,7 @@ func _on_game_finished(won: bool, score: int = -1) -> void:
 		body_label.text = level["after"]
 	else:
 		state = State.LOST
-		title_label.text = level["title"] + " -- You Did Not Make It"
+		title_label.text = level["title"] + (" -- Round Over" if score_key != "" else " -- You Did Not Make It")
 		body_label.text = level["lose_text"]
 
 

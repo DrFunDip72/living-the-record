@@ -1,0 +1,123 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/FortifyGame.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/Player.gd" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/common/UnitShape.tscn" id="3"]
+[ext_resource type="Script" path="res://scripts/common/JuiceCamera.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/common/WaveSpawner.gd" id="5"]
+[ext_resource type="Material" path="res://shaders/CityMaterial.tres" id="6"]
+[ext_resource type="PackedScene" path="res://scenes/BuildSpot.tscn" id="7"]
+
+[sub_resource type="CircleShape2D" id="PlayerCircle"]
+radius = 14.0
+
+[sub_resource type="StyleBoxFlat" id="CityHPFillStyle"]
+bg_color = Color(0.85, 0.2, 0.18, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_left = 6
+corner_radius_bottom_right = 6
+
+[node name="MiniGameFortify" type="Node2D"]
+script = ExtResource("1")
+
+[node name="Background" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 960.0
+offset_bottom = 540.0
+material = ExtResource("6")
+color = Color(1, 1, 1, 1)
+
+[node name="CityCenter" type="Node2D" parent="."]
+position = Vector2(120, 270)
+
+[node name="Visual" parent="CityCenter" instance=ExtResource("3")]
+fill_color = Color(0.85, 0.75, 0.35, 1)
+outline_color = Color(0.4, 0.32, 0.1, 1)
+radius = 26.0
+
+[node name="BuildSpots" type="Node2D" parent="."]
+
+[node name="Spot1" parent="BuildSpots" instance=ExtResource("7")]
+position = Vector2(320, 180)
+
+[node name="Spot2" parent="BuildSpots" instance=ExtResource("7")]
+position = Vector2(320, 380)
+
+[node name="Spot3" parent="BuildSpots" instance=ExtResource("7")]
+position = Vector2(520, 270)
+
+[node name="Spot4" parent="BuildSpots" instance=ExtResource("7")]
+position = Vector2(650, 130)
+
+[node name="Player" type="CharacterBody2D" parent="."]
+position = Vector2(250, 420)
+script = ExtResource("2")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
+shape = SubResource("PlayerCircle")
+
+[node name="Visual" parent="Player" instance=ExtResource("3")]
+fill_color = Color(0.85, 0.55, 0.3, 1)
+outline_color = Color(0.35, 0.2, 0.08, 1)
+radius = 14.0
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+script = ExtResource("4")
+zoom = Vector2(0.85, 0.85)
+limit_left = 0
+limit_top = 0
+limit_right = 960
+limit_bottom = 540
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0
+
+[node name="EnemiesContainer" type="Node2D" parent="."]
+
+[node name="WaveSpawner" type="Node" parent="."]
+script = ExtResource("5")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="HintLabel" type="Label" parent="UI"]
+anchor_right = 1.0
+offset_top = 6.0
+offset_bottom = 28.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 14
+text = "WASD to move, SPACE to swing your sword. Click a gold post to build a tower."
+
+[node name="WaveLabel" type="Label" parent="UI"]
+anchor_right = 1.0
+offset_top = 32.0
+offset_bottom = 58.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 22
+text = "Wave 1"
+
+[node name="CurrencyLabel" type="Label" parent="UI"]
+anchor_left = 0.78
+anchor_right = 1.0
+offset_top = 6.0
+offset_bottom = 28.0
+horizontal_alignment = 2
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+text = "Gold: 20"
+
+[node name="CityHPBar" type="ProgressBar" parent="UI"]
+anchor_left = 0.32
+anchor_top = 0.9
+anchor_right = 0.68
+anchor_bottom = 0.96
+theme_override_styles/fill = SubResource("CityHPFillStyle")
+show_percentage = false
+
+[node name="CityHPNumber" type="Label" parent="UI/CityHPBar"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 16
+text = "10 / 10"

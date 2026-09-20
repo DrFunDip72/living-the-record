@@ -1,0 +1,116 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/AmmonGame.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/Player.gd" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/common/UnitShape.tscn" id="3"]
+[ext_resource type="Script" path="res://scripts/common/JuiceCamera.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/common/WaveSpawner.gd" id="5"]
+[ext_resource type="Material" path="res://shaders/BattlefieldMaterial.tres" id="6"]
+
+[sub_resource type="CircleShape2D" id="PlayerCircle"]
+radius = 14.0
+
+[sub_resource type="StyleBoxFlat" id="HPFillStyle"]
+bg_color = Color(0.85, 0.2, 0.18, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_left = 6
+corner_radius_bottom_right = 6
+
+[node name="MiniGameAmmon" type="Node2D"]
+script = ExtResource("1")
+
+[node name="Background" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 960.0
+offset_bottom = 540.0
+material = ExtResource("6")
+color = Color(1, 1, 1, 1)
+
+[node name="Flock" type="Node2D" parent="."]
+
+[node name="Sheep1" parent="Flock" instance=ExtResource("3")]
+position = Vector2(150, 200)
+fill_color = Color(0.92, 0.9, 0.85, 1)
+outline_color = Color(0.5, 0.48, 0.4, 1)
+radius = 9.0
+
+[node name="Sheep2" parent="Flock" instance=ExtResource("3")]
+position = Vector2(190, 230)
+fill_color = Color(0.92, 0.9, 0.85, 1)
+outline_color = Color(0.5, 0.48, 0.4, 1)
+radius = 9.0
+
+[node name="Sheep3" parent="Flock" instance=ExtResource("3")]
+position = Vector2(140, 260)
+fill_color = Color(0.92, 0.9, 0.85, 1)
+outline_color = Color(0.5, 0.48, 0.4, 1)
+radius = 9.0
+
+[node name="Sheep4" parent="Flock" instance=ExtResource("3")]
+position = Vector2(210, 190)
+fill_color = Color(0.92, 0.9, 0.85, 1)
+outline_color = Color(0.5, 0.48, 0.4, 1)
+radius = 9.0
+
+[node name="Player" type="CharacterBody2D" parent="."]
+position = Vector2(250, 270)
+script = ExtResource("2")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
+shape = SubResource("PlayerCircle")
+
+[node name="Visual" parent="Player" instance=ExtResource("3")]
+fill_color = Color(0.55, 0.8, 0.9, 1)
+outline_color = Color(0.15, 0.35, 0.4, 1)
+radius = 14.0
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+script = ExtResource("4")
+zoom = Vector2(0.85, 0.85)
+limit_left = 0
+limit_top = 0
+limit_right = 960
+limit_bottom = 540
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0
+
+[node name="EnemiesContainer" type="Node2D" parent="."]
+
+[node name="WaveSpawner" type="Node" parent="."]
+script = ExtResource("5")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="HintLabel" type="Label" parent="UI"]
+anchor_right = 1.0
+offset_top = 6.0
+offset_bottom = 28.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 15
+text = "WASD to move. Left-click to sling at range. SPACE to swing your sword up close."
+
+[node name="ScoreLabel" type="Label" parent="UI"]
+anchor_right = 1.0
+offset_top = 34.0
+offset_bottom = 62.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 24
+text = "Score: 0"
+
+[node name="HPBar" type="ProgressBar" parent="UI"]
+anchor_left = 0.32
+anchor_top = 0.9
+anchor_right = 0.68
+anchor_bottom = 0.96
+theme_override_styles/fill = SubResource("HPFillStyle")
+show_percentage = false
+
+[node name="HPNumber" type="Label" parent="UI/HPBar"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 16
+text = "5 / 5"
