@@ -30,23 +30,23 @@ material = ExtResource("3")
 color = Color(1, 1, 1, 1)
 
 [node name="Hills" type="Polygon2D" parent="."]
-polygon = PackedVector2Array(0, 400, 150, 350, 320, 390, 480, 344, 640, 386, 820, 348, 960, 392, 960, 440, 0, 440)
+polygon = PackedVector2Array(0, 362, 150, 312, 320, 352, 480, 306, 640, 348, 820, 310, 960, 354, 960, 400, 0, 400)
 color = Color(0.2, 0.22, 0.2, 1)
 
 [node name="Ground" type="Polygon2D" parent="."]
-polygon = PackedVector2Array(0, 430, 960, 430, 960, 540, 0, 540)
+polygon = PackedVector2Array(0, 392, 960, 392, 960, 540, 0, 540)
 color = Color(0.26, 0.24, 0.19, 1)
 
 [node name="GroundLine" type="Polygon2D" parent="."]
-polygon = PackedVector2Array(0, 430, 960, 430, 960, 436, 0, 436)
+polygon = PackedVector2Array(0, 392, 960, 392, 960, 398, 0, 398)
 color = Color(0.4, 0.37, 0.28, 1)
 
 [node name="PlayerFort" type="Node2D" parent="."]
-position = Vector2(66, 430)
+position = Vector2(66, 392)
 script = ExtResource("2")
 
 [node name="EnemyFort" type="Node2D" parent="."]
-position = Vector2(894, 430)
+position = Vector2(894, 392)
 script = ExtResource("2")
 
 [node name="Units" type="Node2D" parent="."]

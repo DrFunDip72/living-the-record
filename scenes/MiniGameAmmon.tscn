@@ -32,39 +32,45 @@ color = Color(1, 1, 1, 1)
 
 [node name="Sheep1" parent="Flock" instance=ExtResource("3")]
 position = Vector2(150, 200)
-fill_color = Color(0.94, 0.92, 0.87, 1)
-outline_color = Color(0.45, 0.42, 0.36, 1)
-radius = 10.0
+fill_color = Color(0.96, 0.95, 0.92, 1)
+outline_color = Color(0.32, 0.3, 0.26, 1)
+radius = 11.0
+style = "sheep"
 
 [node name="Sheep2" parent="Flock" instance=ExtResource("3")]
 position = Vector2(196, 236)
-fill_color = Color(0.94, 0.92, 0.87, 1)
-outline_color = Color(0.45, 0.42, 0.36, 1)
-radius = 10.0
+fill_color = Color(0.96, 0.95, 0.92, 1)
+outline_color = Color(0.32, 0.3, 0.26, 1)
+radius = 11.0
+style = "sheep"
 
 [node name="Sheep3" parent="Flock" instance=ExtResource("3")]
 position = Vector2(140, 278)
-fill_color = Color(0.94, 0.92, 0.87, 1)
-outline_color = Color(0.45, 0.42, 0.36, 1)
-radius = 10.0
+fill_color = Color(0.96, 0.95, 0.92, 1)
+outline_color = Color(0.32, 0.3, 0.26, 1)
+radius = 11.0
+style = "sheep"
 
 [node name="Sheep4" parent="Flock" instance=ExtResource("3")]
 position = Vector2(210, 180)
-fill_color = Color(0.94, 0.92, 0.87, 1)
-outline_color = Color(0.45, 0.42, 0.36, 1)
-radius = 10.0
+fill_color = Color(0.96, 0.95, 0.92, 1)
+outline_color = Color(0.32, 0.3, 0.26, 1)
+radius = 11.0
+style = "sheep"
 
 [node name="Sheep5" parent="Flock" instance=ExtResource("3")]
 position = Vector2(120, 240)
-fill_color = Color(0.94, 0.92, 0.87, 1)
-outline_color = Color(0.45, 0.42, 0.36, 1)
-radius = 10.0
+fill_color = Color(0.96, 0.95, 0.92, 1)
+outline_color = Color(0.32, 0.3, 0.26, 1)
+radius = 11.0
+style = "sheep"
 
 [node name="Sheep6" parent="Flock" instance=ExtResource("3")]
 position = Vector2(184, 300)
-fill_color = Color(0.94, 0.92, 0.87, 1)
-outline_color = Color(0.45, 0.42, 0.36, 1)
-radius = 10.0
+fill_color = Color(0.96, 0.95, 0.92, 1)
+outline_color = Color(0.32, 0.3, 0.26, 1)
+radius = 11.0
+style = "sheep"
 
 [node name="Player" type="CharacterBody2D" parent="."]
 position = Vector2(250, 270)
@@ -80,7 +86,7 @@ radius = 14.0
 
 [node name="Camera2D" type="Camera2D" parent="Player"]
 script = ExtResource("4")
-zoom = Vector2(0.85, 0.85)
+zoom = Vector2(1.15, 1.15)
 limit_left = 0
 limit_top = 0
 limit_right = 960

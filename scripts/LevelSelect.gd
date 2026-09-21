@@ -30,7 +30,7 @@ func _build_tile(lvl: Dictionary) -> Control:
 	var accent: Color = lvl.get("color", Color(0.5, 0.5, 0.5, 1))
 
 	var btn := Button.new()
-	btn.custom_minimum_size = Vector2(268, 232)
+	btn.custom_minimum_size = Vector2(268, 196)
 	btn.text = ""
 
 	var style := StyleBoxFlat.new()
@@ -58,12 +58,12 @@ func _build_tile(lvl: Dictionary) -> Control:
 	vbox.offset_right = -10.0
 	vbox.offset_bottom = -10.0
 	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vbox.add_theme_constant_override("separation", 6)
+	vbox.add_theme_constant_override("separation", 3)
 	btn.add_child(vbox)
 
 	# Thumbnail panel with drawn art
 	var thumb := PanelContainer.new()
-	thumb.custom_minimum_size = Vector2(0, 104)
+	thumb.custom_minimum_size = Vector2(0, 82)
 	thumb.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var thumb_style := StyleBoxFlat.new()
 	thumb_style.bg_color = accent.darkened(0.62)
@@ -76,14 +76,14 @@ func _build_tile(lvl: Dictionary) -> Control:
 	var icon := Control.new()
 	icon.set_script(GAME_ICON)
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	icon.custom_minimum_size = Vector2(0, 100)
+	icon.custom_minimum_size = Vector2(0, 78)
 	thumb.add_child(icon)
 	icon.set_icon(lvl.get("icon", "swords"), accent)
 
 	var name_label := Label.new()
 	name_label.text = lvl["name"]
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_label.add_theme_font_size_override("font_size", 21)
+	name_label.add_theme_font_size_override("font_size", 19)
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(name_label)
 
@@ -91,7 +91,7 @@ func _build_tile(lvl: Dictionary) -> Control:
 	tag.text = lvl["tagline"]
 	tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	tag.autowrap_mode = TextServer.AUTOWRAP_WORD
-	tag.add_theme_font_size_override("font_size", 13)
+	tag.add_theme_font_size_override("font_size", 12)
 	tag.add_theme_color_override("font_color", Color(0.78, 0.76, 0.72, 1))
 	tag.add_theme_constant_override("outline_size", 0)
 	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE

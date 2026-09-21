@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/NephiBowGame.gd" id="1"]
-[ext_resource type="Material" path="res://shaders/DesertMaterial.tres" id="2"]
+[ext_resource type="Material" path="res://shaders/HuntSkyMaterial.tres" id="2"]
 [ext_resource type="Script" path="res://scripts/BowView.gd" id="3"]
 
 [sub_resource type="StyleBoxFlat" id="HungerFill"]
@@ -24,15 +24,15 @@ color = Color(1, 1, 1, 1)
 
 [node name="FarRidge" type="Polygon2D" parent="."]
 polygon = PackedVector2Array(0, 322, 120, 292, 250, 316, 380, 286, 520, 312, 660, 288, 800, 314, 960, 296, 960, 340, 0, 340)
-color = Color(0.36, 0.3, 0.22, 1)
+color = Color(0.3, 0.31, 0.26, 1)
 
 [node name="Ground" type="Polygon2D" parent="."]
 polygon = PackedVector2Array(0, 330, 960, 330, 960, 540, 0, 540)
-color = Color(0.4, 0.33, 0.2, 1)
+color = Color(0.42, 0.44, 0.24, 1)
 
 [node name="NearGround" type="Polygon2D" parent="."]
 polygon = PackedVector2Array(0, 452, 960, 452, 960, 540, 0, 540)
-color = Color(0.32, 0.26, 0.15, 1)
+color = Color(0.3, 0.33, 0.16, 1)
 
 [node name="Bush1" type="Polygon2D" parent="."]
 position = Vector2(760, 470)
@@ -50,7 +50,8 @@ color = Color(0.26, 0.28, 0.17, 1)
 [node name="Arrows" type="Node2D" parent="."]
 
 [node name="BowView" type="Node2D" parent="."]
-position = Vector2(150, 470)
+position = Vector2(196, 452)
+scale = Vector2(1.35, 1.35)
 script = ExtResource("3")
 
 [node name="Reticle" type="Node2D" parent="."]

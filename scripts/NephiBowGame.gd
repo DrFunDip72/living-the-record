@@ -10,7 +10,7 @@ const HUNGER_DRAIN := 3.4
 const HUNGER_PER_KILL := 32.0
 const DRAW_TIME := 0.85
 const MIN_POWER := 0.3
-const BOW_ANCHOR := Vector2(150, 470)
+const BOW_ANCHOR := Vector2(196, 452)
 
 var hunger: float = MAX_HUNGER
 var score: int = 0
@@ -111,7 +111,7 @@ func _release(target: Vector2) -> void:
 	hold_time = 0.0
 	var dir: Vector2 = (target - BOW_ANCHOR).normalized()
 	var arrow := ARROW_SCENE.instantiate()
-	arrow.position = BOW_ANCHOR + dir * 46.0
+	arrow.position = BOW_ANCHOR + dir * 64.0
 	arrow.velocity = dir * (300.0 + power * 620.0)
 	arrow.resolved.connect(_on_arrow_resolved)
 	arrows_root.add_child(arrow)

@@ -3,7 +3,7 @@ extends Node2D
 signal game_finished(won: bool, score: int)
 
 const UNIT_SCENE := preload("res://scenes/LaneUnit.tscn")
-const GROUND_Y := 430.0
+const GROUND_Y := 392.0
 
 const UNIT_TYPES := {
 	"sword":   {"name": "Swordman", "cost": 25,  "hp": 44.0, "dmg": 7.0,  "range": 36.0,  "atk": 0.8, "spd": 54.0},
@@ -160,6 +160,7 @@ func _spawn_unit(team: int, key: String, x: float) -> void:
 	u.position = Vector2(x, GROUND_Y)
 	units_root.add_child(u)
 	u.configure(team, key, info)
+	u.scale = Vector2(1.3, 1.3)
 	u.arrows_root = arrows_root
 	u.died.connect(_on_unit_died)
 

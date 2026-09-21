@@ -25,14 +25,14 @@ func _ready() -> void:
 
 func setup(p_distance: float) -> void:
 	distance = clampf(p_distance, 0.0, 1.0)
-	var sc: float = lerpf(1.0, 0.44, distance)
+	var sc: float = lerpf(1.25, 0.6, distance)
 	scale = Vector2(sc, sc)
 	position.y = lerpf(468.0, 332.0, distance)
 	points = 10 + int(round(distance * 22.0))
 	walk_speed = lerpf(30.0, 18.0, distance)
 	facing = 1 if randf() < 0.5 else -1
 	position.x = 120.0 if facing > 0 else 840.0
-	coat = Color(0.56, 0.4, 0.26, 1).lerp(Color(0.72, 0.66, 0.55, 1), distance)
+	coat = Color(0.46, 0.31, 0.18, 1).lerp(Color(0.58, 0.45, 0.3, 1), distance)
 	queue_redraw()
 
 
@@ -112,9 +112,9 @@ func _draw() -> void:
 	# legs
 	var leg_swing: float = sin(bob * (14.0 if run else 3.0)) * (9.0 if run else 2.5)
 	for i in range(4):
-		var lx: float = (-22.0 + i * 15.0) * f
+		var lx: float = (-20.0 + i * 13.0) * f
 		var phase: float = leg_swing if i % 2 == 0 else -leg_swing
-		draw_line(Vector2(lx, 12), Vector2(lx + phase * f, 34), INK, 4.0)
+		draw_line(Vector2(lx, 10), Vector2(lx + phase * f, 44), INK, 4.0)
 
 	# body
 	var body := PackedVector2Array([
@@ -140,19 +140,19 @@ func _draw() -> void:
 	draw_colored_polygon(vital, coat.darkened(0.42))
 
 	# neck + head
-	var head_y: float = (10.0 if graze else -32.0) + lift
+	var head_y: float = (16.0 if graze else -34.0) + lift
 	var neck := PackedVector2Array([
 		Vector2(24 * f, -16 + lift), Vector2(34 * f, -10 + lift),
-		Vector2(40 * f, head_y + 10), Vector2(30 * f, head_y + 10),
+		Vector2(46 * f, head_y + 10), Vector2(34 * f, head_y + 12),
 	])
 	draw_colored_polygon(neck, INK)
 	var head := PackedVector2Array([
-		Vector2(30 * f, head_y + 12), Vector2(46 * f, head_y + 6),
-		Vector2(52 * f, head_y + 12), Vector2(44 * f, head_y + 18),
-		Vector2(30 * f, head_y + 18),
+		Vector2(36 * f, head_y + 10), Vector2(54 * f, head_y + 5),
+		Vector2(60 * f, head_y + 12), Vector2(52 * f, head_y + 19),
+		Vector2(36 * f, head_y + 18),
 	])
 	draw_colored_polygon(head, INK)
-	draw_circle(Vector2(41 * f, head_y + 11), 1.7, Color(1, 0.95, 0.85, 1))
+	draw_circle(Vector2(48 * f, head_y + 11), 1.8, Color(1, 0.95, 0.85, 1))
 
 	if not graze:
 		draw_line(Vector2(34 * f, head_y + 6), Vector2(30 * f, head_y - 10), INK, 3.0)

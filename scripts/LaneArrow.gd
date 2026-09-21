@@ -40,7 +40,7 @@ func _process(delta: float) -> void:
 			queue_free()
 			return
 
-	if position.y > 430.0 or position.x < -60.0 or position.x > 1020.0:
+	if position.y > 396.0 or position.x < -60.0 or position.x > 1020.0:
 		queue_free()
 	queue_redraw()
 

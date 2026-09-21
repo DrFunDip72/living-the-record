@@ -59,7 +59,7 @@ radius = 12.0
 
 [node name="Camera2D" type="Camera2D" parent="Player"]
 script = ExtResource("4")
-zoom = Vector2(0.9, 0.9)
+zoom = Vector2(1.0, 1.0)
 limit_left = 0
 limit_top = 0
 limit_right = 960

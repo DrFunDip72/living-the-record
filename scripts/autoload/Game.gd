@@ -34,7 +34,7 @@ var levels: Array = [
 	{
 		"id": "nephis_bow",
 		"name": "Broken Bow",
-		"tagline": "One shot. One animal. A family that hasn't eaten.",
+		"tagline": "One shot. One animal. A hungry camp.",
 		"description": "Draw the bow, hold it steady, and lead your target -- arrows drop over distance. Hit the heart or it runs. Your family's strength drains while you hunt.",
 		"icon": "bow",
 		"reference": "1 Nephi 16",
