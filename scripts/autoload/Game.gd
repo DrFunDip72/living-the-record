@@ -110,6 +110,30 @@ Try again -- study the ground and place your men with purpose.",
 		"score_key": "war_chapters",
 		"color": Color(0.62, 0.3, 0.26, 1),
 	},
+	{
+		"id": "great_deep",
+		"name": "The Great Deep",
+		"tagline": "Cross the ocean. Survive the storm.",
+		"description": "Sail Nephi's ship to the promised land. When Laman and Lemuel bind Nephi, the compass dies and the helm barely answers -- until they repent and loose him.",
+		"icon": "ship",
+		"reference": "1 Nephi 17-18",
+		"scene": "res://scenes/MiniGameShip.tscn",
+		"before": "Nephi built a ship \"after the manner which the Lord had shown\" him, and his family put forth into the sea.
+
+\"...we did put forth into the sea and were driven forth before the wind towards the promised land.\"
+
+But on the water his brothers began to make merry and forget the Lord. When Nephi spoke to them, \"they did take me and bind me with cords... and the compass... did cease to work.\"
+
+Steer around rocks and wreckage. When Nephi is bound, the Liahona stops, the storm rises, and the helm will barely answer you. Hold on until they loose him.",
+		"after": "Bound and afflicted, Nephi wrote: \"I did look unto my God, and I did praise him all the day long; and I did not murmur against the Lord.\" The storm didn't end until the ones who rebelled repented -- and the compass only worked again in righteous hands.
+
+When have other people's choices -- or your own -- made your life hard to steer? What helps you find your compass again?",
+		"lose_text": "The ship was swallowed up by the deep.
+
+Try again -- keep the ship afloat until Nephi is loosed and the storm is stilled.",
+		"score_key": "great_deep",
+		"color": Color(0.2, 0.45, 0.7, 1),
+	},
 ]
 
 var current_level_id: String = ""

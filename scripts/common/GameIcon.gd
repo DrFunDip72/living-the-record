@@ -36,6 +36,8 @@ func _draw() -> void:
 			_draw_tower(cx, cy)
 		"war":
 			_draw_war(cx, cy)
+		"ship":
+			_draw_ship(cx, cy)
 		_:
 			draw_circle(Vector2(cx, cy), 26.0, accent)
 
@@ -167,3 +169,27 @@ func _draw_war(cx: float, cy: float) -> void:
 		for j in range(2):
 			draw_circle(Vector2(cx + 2 + i * 12, cy + 14 + j * 12), 4.5, INK)
 			draw_circle(Vector2(cx + 2 + i * 12, cy + 14 + j * 12), 3.0, Color(0.85, 0.82, 0.72, 1))
+
+
+func _draw_ship(cx: float, cy: float) -> void:
+	# waves
+	for i in range(3):
+		var y: float = cy + 26 + i * 7
+		var prev := Vector2(cx - 44, y)
+		var x := cx - 40.0
+		while x <= cx + 44:
+			var p := Vector2(x, y + sin(x * 0.25 + i) * 2.5)
+			draw_line(prev, p, Color(0.6, 0.8, 1.0, 0.8 - i * 0.2), 2.0)
+			prev = p
+			x += 4.0
+	# hull
+	var hull := PackedVector2Array([Vector2(cx - 34, cy + 14), Vector2(cx + 34, cy + 14), Vector2(cx + 22, cy + 28), Vector2(cx - 22, cy + 28)])
+	draw_colored_polygon(hull, INK)
+	var hull_in := PackedVector2Array([Vector2(cx - 29, cy + 16), Vector2(cx + 29, cy + 16), Vector2(cx + 19, cy + 25), Vector2(cx - 19, cy + 25)])
+	draw_colored_polygon(hull_in, Color(0.55, 0.37, 0.2, 1))
+	# mast + sail
+	draw_line(Vector2(cx, cy + 14), Vector2(cx, cy - 34), INK, 4.0)
+	var sail := PackedVector2Array([Vector2(cx + 2, cy - 30), Vector2(cx + 28, cy + 8), Vector2(cx + 2, cy + 8)])
+	draw_colored_polygon(sail, Color(0.95, 0.93, 0.85, 1))
+	var sail2 := PackedVector2Array([Vector2(cx - 2, cy - 22), Vector2(cx - 22, cy + 8), Vector2(cx - 2, cy + 8)])
+	draw_colored_polygon(sail2, accent.lightened(0.3))
