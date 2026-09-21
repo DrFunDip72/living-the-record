@@ -1,12 +1,20 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/NephiBowGame.gd" id="1"]
 [ext_resource type="Material" path="res://shaders/DesertMaterial.tres" id="2"]
+[ext_resource type="Script" path="res://scripts/BowView.gd" id="3"]
+
+[sub_resource type="StyleBoxFlat" id="HungerFill"]
+bg_color = Color(0.5, 0.78, 0.35, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_left = 6
+corner_radius_bottom_right = 6
 
 [node name="MiniGameNephiBow" type="Node2D"]
 script = ExtResource("1")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Sky" type="ColorRect" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_right = 960.0
@@ -14,21 +22,46 @@ offset_bottom = 540.0
 material = ExtResource("2")
 color = Color(1, 1, 1, 1)
 
-[node name="BowSilhouette" type="Polygon2D" parent="."]
-polygon = PackedVector2Array(340, 540, 620, 540, 560, 400, 400, 400)
-color = Color(0.08, 0.06, 0.05, 0.9)
+[node name="FarRidge" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, 322, 120, 292, 250, 316, 380, 286, 520, 312, 660, 288, 800, 314, 960, 296, 960, 340, 0, 340)
+color = Color(0.36, 0.3, 0.22, 1)
 
-[node name="AnimalsContainer" type="Node2D" parent="."]
+[node name="Ground" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, 330, 960, 330, 960, 540, 0, 540)
+color = Color(0.4, 0.33, 0.2, 1)
+
+[node name="NearGround" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, 452, 960, 452, 960, 540, 0, 540)
+color = Color(0.32, 0.26, 0.15, 1)
+
+[node name="Bush1" type="Polygon2D" parent="."]
+position = Vector2(760, 470)
+polygon = PackedVector2Array(-34, 0, -20, -20, 0, -26, 22, -18, 34, 0)
+color = Color(0.24, 0.27, 0.15, 1)
+
+[node name="Bush2" type="Polygon2D" parent="."]
+position = Vector2(300, 352)
+scale = Vector2(0.6, 0.6)
+polygon = PackedVector2Array(-34, 0, -20, -20, 0, -26, 22, -18, 34, 0)
+color = Color(0.26, 0.28, 0.17, 1)
+
+[node name="Animals" type="Node2D" parent="."]
+
+[node name="Arrows" type="Node2D" parent="."]
+
+[node name="BowView" type="Node2D" parent="."]
+position = Vector2(150, 470)
+script = ExtResource("3")
 
 [node name="Reticle" type="Node2D" parent="."]
 
-[node name="Crosshair" type="Label" parent="Reticle"]
-offset_left = -16.0
-offset_top = -20.0
-offset_right = 16.0
-offset_bottom = 20.0
-theme_override_font_sizes/font_size = 34
-theme_override_colors/font_color = Color(1, 0.25, 0.2, 1)
+[node name="Cross" type="Label" parent="Reticle"]
+offset_left = -15.0
+offset_top = -19.0
+offset_right = 15.0
+offset_bottom = 19.0
+theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(1, 0.3, 0.25, 0.95)
 horizontal_alignment = 1
 vertical_alignment = 1
 text = "+"
@@ -38,33 +71,51 @@ text = "+"
 [node name="HintLabel" type="Label" parent="UI"]
 anchor_right = 1.0
 offset_top = 6.0
-offset_bottom = 28.0
+offset_bottom = 26.0
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 15
-text = "Aim with the mouse. Click to loose an arrow. Faster/smaller game is worth more."
+theme_override_font_sizes/font_size = 14
+text = "Hold to draw, release to loose. Arrows fall -- aim high for distant game. Hit the chest."
 
-[node name="TimerLabel" type="Label" parent="UI"]
-anchor_left = 0.05
-offset_top = 6.0
-offset_bottom = 32.0
-theme_override_font_sizes/font_size = 20
-text = "Time: 45"
+[node name="HungerBar" type="ProgressBar" parent="UI"]
+anchor_left = 0.3
+anchor_top = 0.93
+anchor_right = 0.7
+anchor_bottom = 0.985
+theme_override_styles/fill = SubResource("HungerFill")
+show_percentage = false
+
+[node name="HungerLabel" type="Label" parent="UI/HungerBar"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 15
+text = "Camp Provisions: 100%"
 
 [node name="ScoreLabel" type="Label" parent="UI"]
+anchor_left = 0.62
 anchor_right = 1.0
-anchor_left = 0.7
-offset_top = 6.0
-offset_bottom = 32.0
+offset_top = 30.0
+offset_bottom = 54.0
 horizontal_alignment = 2
-theme_override_font_sizes/font_size = 20
-text = "Score: 0"
+offset_right = -18.0
+theme_override_font_sizes/font_size = 18
+text = "Taken: 0    Score: 0"
 
-[node name="ComboLabel" type="Label" parent="UI"]
-anchor_left = 0.4
-anchor_right = 0.6
-offset_top = 40.0
-offset_bottom = 64.0
+[node name="MessageLabel" type="Label" parent="UI"]
+anchor_right = 1.0
+offset_top = 58.0
+offset_bottom = 84.0
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
-text = "Combo x1"
+theme_override_colors/font_color = Color(1, 0.9, 0.55, 1)
+text = ""
+
+[node name="PowerBar" type="ProgressBar" parent="UI"]
+anchor_left = 0.04
+anchor_top = 0.72
+anchor_right = 0.09
+anchor_bottom = 0.93
+fill_mode = 3
+show_percentage = false
+visible = false

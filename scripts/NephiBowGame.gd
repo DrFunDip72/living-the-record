@@ -2,33 +2,49 @@ extends Node2D
 
 signal game_finished(won: bool, score: int)
 
-const ROUND_TIME := 45.0
-const UNIT_SHAPE := preload("res://scenes/common/UnitShape.tscn")
+const ARROW_SCENE := preload("res://scenes/HuntArrow.tscn")
+const ANIMAL_SCENE := preload("res://scenes/HuntAnimal.tscn")
 
-const PROFILES := [
-	{"speed": 90.0, "radius": 22.0, "points": 10, "color": Color(0.55, 0.4, 0.25, 1)},
-	{"speed": 150.0, "radius": 16.0, "points": 20, "color": Color(0.4, 0.3, 0.2, 1)},
-	{"speed": 230.0, "radius": 11.0, "points": 35, "color": Color(0.8, 0.75, 0.65, 1)},
-]
+const MAX_HUNGER := 100.0
+const HUNGER_DRAIN := 3.4
+const HUNGER_PER_KILL := 32.0
+const DRAW_TIME := 0.85
+const MIN_POWER := 0.3
+const BOW_ANCHOR := Vector2(150, 470)
 
-var time_left: float = ROUND_TIME
+var hunger: float = MAX_HUNGER
 var score: int = 0
-var combo: int = 1
-var spawn_timer: float = 0.6
+var taken: int = 0
+var missed: int = 0
+var drawing: bool = false
+var draw_power: float = 0.0
+var hold_time: float = 0.0
+var aim_pos: Vector2 = Vector2(620, 330)
 var finished: bool = false
+var spawn_delay: float = 0.8
+var animal: Node2D = null
+var msg_timer: float = 0.0
 var _mouse_was_pressed: bool = false
+var _t: float = 0.0
 
-@onready var timer_label: Label = $UI/TimerLabel
-@onready var score_label: Label = $UI/ScoreLabel
-@onready var combo_label: Label = $UI/ComboLabel
-@onready var animals_container: Node2D = $AnimalsContainer
+@onready var bow: Node2D = $BowView
 @onready var reticle: Node2D = $Reticle
+@onready var hunger_bar: ProgressBar = $UI/HungerBar
+@onready var hunger_label: Label = $UI/HungerBar/HungerLabel
+@onready var score_label: Label = $UI/ScoreLabel
+@onready var msg_label: Label = $UI/MessageLabel
+@onready var power_bar: ProgressBar = $UI/PowerBar
+@onready var arrows_root: Node2D = $Arrows
+@onready var animals_root: Node2D = $Animals
 
 
 func _ready() -> void:
 	randomize()
 	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
-	_update_labels()
+	bow.position = BOW_ANCHOR
+	hunger_bar.max_value = MAX_HUNGER
+	msg_label.text = ""
+	_update_hud()
 
 
 func _exit_tree() -> void:
@@ -38,77 +54,125 @@ func _exit_tree() -> void:
 func _process(delta: float) -> void:
 	if finished:
 		return
+	_t += delta
 
-	reticle.position = get_viewport().get_mouse_position()
-
-	time_left -= delta
-	if time_left <= 0.0:
+	# --- hunger pressure ---
+	hunger -= HUNGER_DRAIN * delta
+	if hunger <= 0.0:
+		hunger = 0.0
 		_finish()
 		return
 
-	spawn_timer -= delta
-	if spawn_timer <= 0.0:
-		_spawn_animal()
-		spawn_timer = randf_range(0.5, 1.2)
+	# --- imperfect aim: lag toward mouse + sway that grows as you hold ---
+	var mouse: Vector2 = get_viewport().get_mouse_position()
+	aim_pos = aim_pos.lerp(mouse, 1.0 - exp(-7.0 * delta))
+	var sway_amp: float = 2.0 + hold_time * 9.0
+	var sway := Vector2(sin(_t * 1.9) * sway_amp, cos(_t * 2.7) * sway_amp * 0.7)
+	var final_aim: Vector2 = aim_pos + sway
+	reticle.position = final_aim
 
-	for a in animals_container.get_children():
-		var dir: int = a.get_meta("dir")
-		var speed: float = a.get_meta("speed")
-		a.position.x += speed * dir * delta
-		if a.position.x < -80.0 or a.position.x > 1040.0:
-			a.queue_free()
+	# --- draw / release ---
+	var pressed := Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	if pressed and not _mouse_was_pressed:
+		drawing = true
+		hold_time = 0.0
+		draw_power = 0.0
+	elif pressed and drawing:
+		hold_time += delta
+		draw_power = minf(hold_time / DRAW_TIME, 1.0)
+	elif not pressed and _mouse_was_pressed and drawing:
+		_release(final_aim)
+	_mouse_was_pressed = pressed
 
-	var mouse_pressed := Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
-	if mouse_pressed and not _mouse_was_pressed:
-		_try_shoot(reticle.position)
-	_mouse_was_pressed = mouse_pressed
+	var aim_dir: Vector2 = (final_aim - BOW_ANCHOR).normalized()
+	bow.rotation = aim_dir.angle()
+	bow.set_state(draw_power, true)
+	power_bar.value = draw_power * 100.0
+	power_bar.visible = drawing
 
-	_update_labels()
+	# --- animal lifecycle ---
+	if animal == null or not is_instance_valid(animal):
+		spawn_delay -= delta
+		if spawn_delay <= 0.0:
+			_spawn_animal()
+
+	if msg_timer > 0.0:
+		msg_timer -= delta
+		if msg_timer <= 0.0:
+			msg_label.text = ""
+
+	_update_hud()
+
+
+func _release(target: Vector2) -> void:
+	drawing = false
+	var power: float = maxf(draw_power, MIN_POWER)
+	draw_power = 0.0
+	hold_time = 0.0
+	var dir: Vector2 = (target - BOW_ANCHOR).normalized()
+	var arrow := ARROW_SCENE.instantiate()
+	arrow.position = BOW_ANCHOR + dir * 46.0
+	arrow.velocity = dir * (300.0 + power * 620.0)
+	arrow.resolved.connect(_on_arrow_resolved)
+	arrows_root.add_child(arrow)
+
+
+func _on_arrow_resolved(kind: String, pos: Vector2, points: int) -> void:
+	if finished:
+		return
+	match kind:
+		"vital":
+			taken += 1
+			score += points
+			hunger = minf(hunger + HUNGER_PER_KILL, MAX_HUNGER)
+			Fx.spawn_hit_burst(self, pos, Color(0.9, 0.3, 0.25, 1), 16)
+			_say("Clean shot! The camp eats tonight.  +%d" % points)
+			spawn_delay = 1.2
+		"body":
+			missed += 1
+			Fx.spawn_hit_burst(self, pos, Color(0.8, 0.5, 0.3, 1), 10)
+			_say("Only a graze -- it bolted.")
+			spawn_delay = 1.4
+		_:
+			missed += 1
+			Fx.spawn_hit_burst(self, pos, Color(0.6, 0.55, 0.45, 0.8), 8)
+			if animal != null and is_instance_valid(animal):
+				if absf(animal.global_position.x - pos.x) < 150.0:
+					animal.spook(pos.x)
+					_say("Missed -- the noise spooked it.")
+				else:
+					_say("Missed.")
 
 
 func _spawn_animal() -> void:
-	var profile: Dictionary = PROFILES[randi() % PROFILES.size()]
-	var a := Node2D.new()
-	var vis := UNIT_SHAPE.instantiate()
-	a.add_child(vis)
-	vis.fill_color = profile["color"]
-	vis.outline_color = profile["color"].darkened(0.5)
-	vis.radius = profile["radius"]
-	var dir: int = 1 if randf() < 0.5 else -1
-	a.position = Vector2(-40.0 if dir > 0 else 1000.0, randf_range(340.0, 480.0))
-	a.set_meta("speed", profile["speed"])
-	a.set_meta("dir", dir)
-	a.set_meta("points", profile["points"])
-	a.set_meta("hit_radius", profile["radius"] + 16.0)
-	animals_container.add_child(a)
+	var a := ANIMAL_SCENE.instantiate()
+	animals_root.add_child(a)
+	a.setup(randf())
+	a.killed.connect(func(_p): spawn_delay = 1.2)
+	a.escaped.connect(func():
+		spawn_delay = 1.0
+		_say("It got away.")
+	)
+	animal = a
 
 
-func _try_shoot(pos: Vector2) -> void:
-	var best: Node2D = null
-	var best_dist := INF
-	for a in animals_container.get_children():
-		var d: float = a.position.distance_to(pos)
-		var hit_r: float = a.get_meta("hit_radius")
-		if d <= hit_r and d < best_dist:
-			best_dist = d
-			best = a
-	if best:
-		var pts: int = int(best.get_meta("points")) * combo
-		score += pts
-		combo = min(combo + 1, 8)
-		Fx.spawn_hit_burst(self, best.position, Color(1, 0.9, 0.3, 1), 12)
-		best.queue_free()
-	else:
-		combo = 1
-		Fx.spawn_hit_burst(self, pos, Color(0.7, 0.7, 0.7, 0.6), 6)
+func _say(text: String) -> void:
+	msg_label.text = text
+	msg_timer = 1.9
 
 
-func _update_labels() -> void:
-	timer_label.text = "Time: %d" % int(max(ceil(time_left), 0))
-	score_label.text = "Score: %d" % score
-	combo_label.text = "Combo x%d" % combo
+func _update_hud() -> void:
+	hunger_bar.value = hunger
+	hunger_label.text = "Camp Provisions: %d%%" % int(round(hunger))
+	score_label.text = "Taken: %d    Score: %d" % [taken, score]
 
 
 func _finish() -> void:
 	finished = true
-	get_tree().create_timer(0.4).timeout.connect(func(): game_finished.emit(true, score))
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	var flash := ColorRect.new()
+	flash.color = Color(0.4, 0.1, 0.1, 0.45)
+	flash.anchor_right = 1.0
+	flash.anchor_bottom = 1.0
+	add_child(flash)
+	get_tree().create_timer(0.45).timeout.connect(func(): game_finished.emit(false, score))

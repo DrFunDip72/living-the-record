@@ -9,6 +9,7 @@ var current_instance: Node = null
 @onready var gameplay_root: Node2D = $GameplayRoot
 @onready var ui: CanvasLayer = $UI
 @onready var title_label: Label = $UI/TitleLabel
+@onready var ref_label: Label = $UI/RefLabel
 @onready var body_label: RichTextLabel = $UI/BodyLabel
 @onready var score_label: Label = $UI/ScoreLabel
 @onready var play_button: Button = $UI/PlayButton
@@ -52,7 +53,8 @@ func _show_before() -> void:
 	end_buttons.visible = false
 	score_label.visible = false
 	play_button.visible = true
-	title_label.text = level["title"]
+	title_label.text = level["name"]
+	ref_label.text = level["reference"] + "  |  " + level["tagline"]
 	body_label.text = level["before"]
 
 
@@ -80,17 +82,18 @@ func _on_game_finished(won: bool, score: int = -1) -> void:
 	if score >= 0 and score_key != "":
 		var is_new_best: bool = HighScores.submit_score(score_key, score)
 		score_label.visible = true
-		score_label.text = "Score: %d   Best: %d%s" % [score, HighScores.get_best(score_key), "  (New Best!)" if is_new_best else ""]
+		score_label.text = "Score: %d    Best: %d%s" % [score, HighScores.get_best(score_key), "    NEW BEST!" if is_new_best else ""]
 	else:
 		score_label.visible = false
 
+	ref_label.text = level["reference"]
 	if won:
 		state = State.WON
-		title_label.text = level["title"] + " -- Complete"
+		title_label.text = level["name"] + " -- Complete"
 		body_label.text = level["after"]
 	else:
 		state = State.LOST
-		title_label.text = level["title"] + (" -- Round Over" if score_key != "" else " -- You Did Not Make It")
+		title_label.text = level["name"] + (" -- Round Over" if score_key != "" else " -- You Did Not Make It")
 		body_label.text = level["lose_text"]
 
 

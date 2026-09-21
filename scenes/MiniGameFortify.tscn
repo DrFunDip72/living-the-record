@@ -1,123 +1,129 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/FortifyGame.gd" id="1"]
-[ext_resource type="Script" path="res://scripts/Player.gd" id="2"]
-[ext_resource type="PackedScene" path="res://scenes/common/UnitShape.tscn" id="3"]
-[ext_resource type="Script" path="res://scripts/common/JuiceCamera.gd" id="4"]
-[ext_resource type="Script" path="res://scripts/common/WaveSpawner.gd" id="5"]
-[ext_resource type="Material" path="res://shaders/CityMaterial.tres" id="6"]
-[ext_resource type="PackedScene" path="res://scenes/BuildSpot.tscn" id="7"]
+[ext_resource type="Script" path="res://scripts/LaneFort.gd" id="2"]
+[ext_resource type="Material" path="res://shaders/CityMaterial.tres" id="3"]
 
-[sub_resource type="CircleShape2D" id="PlayerCircle"]
-radius = 14.0
+[sub_resource type="StyleBoxFlat" id="PlayerHPFill"]
+bg_color = Color(0.35, 0.7, 1, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_left = 5
+corner_radius_bottom_right = 5
 
-[sub_resource type="StyleBoxFlat" id="CityHPFillStyle"]
-bg_color = Color(0.85, 0.2, 0.18, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_left = 6
-corner_radius_bottom_right = 6
+[sub_resource type="StyleBoxFlat" id="EnemyHPFill"]
+bg_color = Color(0.92, 0.35, 0.3, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_left = 5
+corner_radius_bottom_right = 5
 
 [node name="MiniGameFortify" type="Node2D"]
 script = ExtResource("1")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Sky" type="ColorRect" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_right = 960.0
 offset_bottom = 540.0
-material = ExtResource("6")
+material = ExtResource("3")
 color = Color(1, 1, 1, 1)
 
-[node name="CityCenter" type="Node2D" parent="."]
-position = Vector2(120, 270)
+[node name="Hills" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, 400, 150, 350, 320, 390, 480, 344, 640, 386, 820, 348, 960, 392, 960, 440, 0, 440)
+color = Color(0.2, 0.22, 0.2, 1)
 
-[node name="Visual" parent="CityCenter" instance=ExtResource("3")]
-fill_color = Color(0.85, 0.75, 0.35, 1)
-outline_color = Color(0.4, 0.32, 0.1, 1)
-radius = 26.0
+[node name="Ground" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, 430, 960, 430, 960, 540, 0, 540)
+color = Color(0.26, 0.24, 0.19, 1)
 
-[node name="BuildSpots" type="Node2D" parent="."]
+[node name="GroundLine" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, 430, 960, 430, 960, 436, 0, 436)
+color = Color(0.4, 0.37, 0.28, 1)
 
-[node name="Spot1" parent="BuildSpots" instance=ExtResource("7")]
-position = Vector2(320, 180)
-
-[node name="Spot2" parent="BuildSpots" instance=ExtResource("7")]
-position = Vector2(320, 380)
-
-[node name="Spot3" parent="BuildSpots" instance=ExtResource("7")]
-position = Vector2(520, 270)
-
-[node name="Spot4" parent="BuildSpots" instance=ExtResource("7")]
-position = Vector2(650, 130)
-
-[node name="Player" type="CharacterBody2D" parent="."]
-position = Vector2(250, 420)
+[node name="PlayerFort" type="Node2D" parent="."]
+position = Vector2(66, 430)
 script = ExtResource("2")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
-shape = SubResource("PlayerCircle")
+[node name="EnemyFort" type="Node2D" parent="."]
+position = Vector2(894, 430)
+script = ExtResource("2")
 
-[node name="Visual" parent="Player" instance=ExtResource("3")]
-fill_color = Color(0.85, 0.55, 0.3, 1)
-outline_color = Color(0.35, 0.2, 0.08, 1)
-radius = 14.0
+[node name="Units" type="Node2D" parent="."]
 
-[node name="Camera2D" type="Camera2D" parent="Player"]
-script = ExtResource("4")
-zoom = Vector2(0.85, 0.85)
-limit_left = 0
-limit_top = 0
-limit_right = 960
-limit_bottom = 540
-position_smoothing_enabled = true
-position_smoothing_speed = 8.0
-
-[node name="EnemiesContainer" type="Node2D" parent="."]
-
-[node name="WaveSpawner" type="Node" parent="."]
-script = ExtResource("5")
+[node name="Arrows" type="Node2D" parent="."]
 
 [node name="UI" type="CanvasLayer" parent="."]
 
-[node name="HintLabel" type="Label" parent="UI"]
+[node name="TopBar" type="Control" parent="UI"]
 anchor_right = 1.0
-offset_top = 6.0
-offset_bottom = 28.0
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 14
-text = "WASD to move, SPACE to swing your sword. Click a gold post to build a tower."
+offset_bottom = 60.0
 
-[node name="WaveLabel" type="Label" parent="UI"]
-anchor_right = 1.0
-offset_top = 32.0
-offset_bottom = 58.0
-horizontal_alignment = 1
+[node name="GoldLabel" type="Label" parent="UI/TopBar"]
+offset_left = 16.0
+offset_top = 6.0
+offset_right = 220.0
+offset_bottom = 34.0
 theme_override_font_sizes/font_size = 22
-text = "Wave 1"
-
-[node name="CurrencyLabel" type="Label" parent="UI"]
-anchor_left = 0.78
-anchor_right = 1.0
-offset_top = 6.0
-offset_bottom = 28.0
-horizontal_alignment = 2
-theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
-text = "Gold: 20"
+text = "Gold: 70"
 
-[node name="CityHPBar" type="ProgressBar" parent="UI"]
-anchor_left = 0.32
-anchor_top = 0.9
-anchor_right = 0.68
-anchor_bottom = 0.96
-theme_override_styles/fill = SubResource("CityHPFillStyle")
+[node name="StatLabel" type="Label" parent="UI/TopBar"]
+anchor_left = 0.24
+anchor_right = 1.0
+offset_top = 10.0
+offset_bottom = 32.0
+offset_right = -16.0
+horizontal_alignment = 2
+theme_override_font_sizes/font_size = 14
+text = "Income 7/s    Crossbow Lv1    Walls Lv1    Kills 0"
+
+[node name="PlayerHP" type="ProgressBar" parent="UI"]
+offset_left = 16.0
+offset_top = 38.0
+offset_right = 300.0
+offset_bottom = 56.0
+theme_override_styles/fill = SubResource("PlayerHPFill")
 show_percentage = false
 
-[node name="CityHPNumber" type="Label" parent="UI/CityHPBar"]
+[node name="EnemyHP" type="ProgressBar" parent="UI"]
+anchor_left = 1.0
 anchor_right = 1.0
+offset_left = -300.0
+offset_top = 38.0
+offset_right = -16.0
+offset_bottom = 56.0
+theme_override_styles/fill = SubResource("EnemyHPFill")
+show_percentage = false
+
+[node name="UnitBar" type="HBoxContainer" parent="UI"]
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 1.0
 anchor_bottom = 1.0
+offset_left = -350.0
+offset_right = 350.0
+offset_top = -62.0
+offset_bottom = -8.0
+alignment = 1
+theme_override_constants/separation = 6
+
+[node name="UpgradeBar" type="HBoxContainer" parent="UI"]
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = -250.0
+offset_right = 250.0
+offset_top = -108.0
+offset_bottom = -66.0
+alignment = 1
+theme_override_constants/separation = 8
+
+[node name="HintLabel" type="Label" parent="UI"]
+anchor_right = 1.0
+offset_top = 62.0
+offset_bottom = 82.0
 horizontal_alignment = 1
-vertical_alignment = 1
-theme_override_font_sizes/font_size = 16
-text = "10 / 10"
+theme_override_font_sizes/font_size = 13
+text = "Train units to push right. Upgrade your fort so theirs falls first."

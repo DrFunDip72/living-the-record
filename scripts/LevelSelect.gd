@@ -1,93 +1,125 @@
 extends Node2D
 
+const GAME_ICON := preload("res://scripts/common/GameIcon.gd")
+
 @onready var grid: GridContainer = $UI/ScrollContainer/Grid
-@onready var back_button: Button = $UI/BackButton
+@onready var search_box: LineEdit = $UI/Header/SearchBox
+@onready var home_button: Button = $UI/Header/HomeButton
+@onready var empty_label: Label = $UI/EmptyLabel
 
 
 func _ready() -> void:
-	back_button.pressed.connect(func(): Transition.goto_scene("res://scenes/Title.tscn"))
-	_populate()
+	home_button.pressed.connect(func(): Transition.goto_scene("res://scenes/Title.tscn"))
+	search_box.text_changed.connect(_on_search_changed)
+	_populate(Game.levels)
 
 
-func _populate() -> void:
+func _on_search_changed(text: String) -> void:
+	_populate(Game.search(text))
+
+
+func _populate(list: Array) -> void:
 	for child in grid.get_children():
 		child.queue_free()
-	for lvl in Game.levels:
-		grid.add_child(_build_card(lvl))
+	empty_label.visible = list.is_empty()
+	for lvl in list:
+		grid.add_child(_build_tile(lvl))
 
 
-func _build_card(lvl: Dictionary) -> Control:
+func _build_tile(lvl: Dictionary) -> Control:
 	var accent: Color = lvl.get("color", Color(0.5, 0.5, 0.5, 1))
 
 	var btn := Button.new()
-	btn.custom_minimum_size = Vector2(300, 170)
+	btn.custom_minimum_size = Vector2(268, 232)
 	btn.text = ""
-	btn.clip_text = false
 
 	var style := StyleBoxFlat.new()
-	style.bg_color = accent.darkened(0.55)
-	style.border_color = accent
+	style.bg_color = Color(0.11, 0.10, 0.14, 1)
+	style.border_color = accent.darkened(0.15)
 	style.set_border_width_all(3)
-	style.set_corner_radius_all(16)
+	style.set_corner_radius_all(14)
+	style.shadow_color = Color(0, 0, 0, 0.35)
+	style.shadow_size = 6
 	btn.add_theme_stylebox_override("normal", style)
 
-	var style_hover := style.duplicate()
-	style_hover.bg_color = accent.darkened(0.35)
-	style_hover.border_color = accent.lightened(0.2)
-	btn.add_theme_stylebox_override("hover", style_hover)
-	btn.add_theme_stylebox_override("pressed", style_hover)
-	btn.add_theme_stylebox_override("focus", style_hover)
+	var hover := style.duplicate()
+	hover.bg_color = Color(0.17, 0.16, 0.21, 1)
+	hover.border_color = accent.lightened(0.25)
+	hover.set_border_width_all(4)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_stylebox_override("pressed", hover)
+	btn.add_theme_stylebox_override("focus", hover)
 
 	var vbox := VBoxContainer.new()
 	vbox.anchor_right = 1.0
 	vbox.anchor_bottom = 1.0
-	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.offset_left = 10.0
+	vbox.offset_top = 10.0
+	vbox.offset_right = -10.0
+	vbox.offset_bottom = -10.0
 	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vbox.add_theme_constant_override("separation", 8)
+	vbox.add_theme_constant_override("separation", 6)
 	btn.add_child(vbox)
 
-	var badge_wrap := CenterContainer.new()
-	badge_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vbox.add_child(badge_wrap)
+	# Thumbnail panel with drawn art
+	var thumb := PanelContainer.new()
+	thumb.custom_minimum_size = Vector2(0, 104)
+	thumb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var thumb_style := StyleBoxFlat.new()
+	thumb_style.bg_color = accent.darkened(0.62)
+	thumb_style.set_corner_radius_all(10)
+	thumb_style.border_color = accent.darkened(0.3)
+	thumb_style.set_border_width_all(2)
+	thumb.add_theme_stylebox_override("panel", thumb_style)
+	vbox.add_child(thumb)
 
-	var badge := PanelContainer.new()
-	badge.custom_minimum_size = Vector2(56, 56)
-	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var badge_style := StyleBoxFlat.new()
-	badge_style.bg_color = accent
-	badge_style.set_corner_radius_all(28)
-	badge_style.border_color = Color(0, 0, 0, 0.45)
-	badge_style.set_border_width_all(2)
-	badge.add_theme_stylebox_override("panel", badge_style)
-	badge_wrap.add_child(badge)
+	var icon := Control.new()
+	icon.set_script(GAME_ICON)
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.custom_minimum_size = Vector2(0, 100)
+	thumb.add_child(icon)
+	icon.set_icon(lvl.get("icon", "swords"), accent)
 
-	var mono := Label.new()
-	mono.text = lvl.get("monogram", "?")
-	mono.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	mono.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	mono.custom_minimum_size = Vector2(56, 56)
-	mono.add_theme_font_size_override("font_size", 24)
-	mono.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	badge.add_child(mono)
+	var name_label := Label.new()
+	name_label.text = lvl["name"]
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.add_theme_font_size_override("font_size", 21)
+	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_child(name_label)
 
-	var title := Label.new()
-	title.text = lvl["title"]
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.autowrap_mode = TextServer.AUTOWRAP_WORD
-	title.custom_minimum_size = Vector2(260, 0)
-	title.add_theme_font_size_override("font_size", 15)
-	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vbox.add_child(title)
+	var tag := Label.new()
+	tag.text = lvl["tagline"]
+	tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tag.autowrap_mode = TextServer.AUTOWRAP_WORD
+	tag.add_theme_font_size_override("font_size", 13)
+	tag.add_theme_color_override("font_color", Color(0.78, 0.76, 0.72, 1))
+	tag.add_theme_constant_override("outline_size", 0)
+	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_child(tag)
+
+	var footer := HBoxContainer.new()
+	footer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	footer.alignment = BoxContainer.ALIGNMENT_CENTER
+	footer.add_theme_constant_override("separation", 10)
+	vbox.add_child(footer)
+
+	var ref := Label.new()
+	ref.text = lvl["reference"]
+	ref.add_theme_font_size_override("font_size", 12)
+	ref.add_theme_color_override("font_color", accent.lightened(0.35))
+	ref.add_theme_constant_override("outline_size", 0)
+	ref.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	footer.add_child(ref)
 
 	var score_key: String = lvl.get("score_key", "")
 	if score_key != "":
-		var score_lbl := Label.new()
-		score_lbl.text = "Best: %d" % HighScores.get_best(score_key)
-		score_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		score_lbl.add_theme_font_size_override("font_size", 14)
-		score_lbl.add_theme_color_override("font_color", Color(1, 0.85, 0.4, 1))
-		score_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		vbox.add_child(score_lbl)
+		var best := Label.new()
+		best.text = "Best: %d" % HighScores.get_best(score_key)
+		best.add_theme_font_size_override("font_size", 12)
+		best.add_theme_color_override("font_color", Color(1, 0.85, 0.4, 1))
+		best.add_theme_constant_override("outline_size", 0)
+		best.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		footer.add_child(best)
 
 	btn.pressed.connect(func():
 		_pop(btn)
@@ -96,7 +128,7 @@ func _build_card(lvl: Dictionary) -> Control:
 	return btn
 
 
-func _pop(node: Control, target: float = 1.06) -> void:
+func _pop(node: Control, target: float = 1.05) -> void:
 	node.pivot_offset = node.size / 2.0
 	var tw := create_tween()
 	tw.tween_property(node, "scale", Vector2(target, target), 0.06)

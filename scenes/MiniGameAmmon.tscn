@@ -32,27 +32,39 @@ color = Color(1, 1, 1, 1)
 
 [node name="Sheep1" parent="Flock" instance=ExtResource("3")]
 position = Vector2(150, 200)
-fill_color = Color(0.92, 0.9, 0.85, 1)
-outline_color = Color(0.5, 0.48, 0.4, 1)
-radius = 9.0
+fill_color = Color(0.94, 0.92, 0.87, 1)
+outline_color = Color(0.45, 0.42, 0.36, 1)
+radius = 10.0
 
 [node name="Sheep2" parent="Flock" instance=ExtResource("3")]
-position = Vector2(190, 230)
-fill_color = Color(0.92, 0.9, 0.85, 1)
-outline_color = Color(0.5, 0.48, 0.4, 1)
-radius = 9.0
+position = Vector2(196, 236)
+fill_color = Color(0.94, 0.92, 0.87, 1)
+outline_color = Color(0.45, 0.42, 0.36, 1)
+radius = 10.0
 
 [node name="Sheep3" parent="Flock" instance=ExtResource("3")]
-position = Vector2(140, 260)
-fill_color = Color(0.92, 0.9, 0.85, 1)
-outline_color = Color(0.5, 0.48, 0.4, 1)
-radius = 9.0
+position = Vector2(140, 278)
+fill_color = Color(0.94, 0.92, 0.87, 1)
+outline_color = Color(0.45, 0.42, 0.36, 1)
+radius = 10.0
 
 [node name="Sheep4" parent="Flock" instance=ExtResource("3")]
-position = Vector2(210, 190)
-fill_color = Color(0.92, 0.9, 0.85, 1)
-outline_color = Color(0.5, 0.48, 0.4, 1)
-radius = 9.0
+position = Vector2(210, 180)
+fill_color = Color(0.94, 0.92, 0.87, 1)
+outline_color = Color(0.45, 0.42, 0.36, 1)
+radius = 10.0
+
+[node name="Sheep5" parent="Flock" instance=ExtResource("3")]
+position = Vector2(120, 240)
+fill_color = Color(0.94, 0.92, 0.87, 1)
+outline_color = Color(0.45, 0.42, 0.36, 1)
+radius = 10.0
+
+[node name="Sheep6" parent="Flock" instance=ExtResource("3")]
+position = Vector2(184, 300)
+fill_color = Color(0.94, 0.92, 0.87, 1)
+outline_color = Color(0.45, 0.42, 0.36, 1)
+radius = 10.0
 
 [node name="Player" type="CharacterBody2D" parent="."]
 position = Vector2(250, 270)
@@ -93,24 +105,37 @@ text = "WASD to move. Left-click to sling at range. SPACE to swing your sword up
 
 [node name="ScoreLabel" type="Label" parent="UI"]
 anchor_right = 1.0
-offset_top = 34.0
-offset_bottom = 62.0
+offset_top = 30.0
+offset_bottom = 58.0
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 24
-text = "Score: 0"
+theme_override_font_sizes/font_size = 22
+text = "Score: 0    Wave 1"
 
-[node name="HPBar" type="ProgressBar" parent="UI"]
-anchor_left = 0.32
-anchor_top = 0.9
-anchor_right = 0.68
-anchor_bottom = 0.96
-theme_override_styles/fill = SubResource("HPFillStyle")
-show_percentage = false
+[node name="AmmoLabel" type="Label" parent="UI"]
+anchor_left = 0.02
+offset_top = 64.0
+offset_bottom = 90.0
+offset_right = 320.0
+theme_override_font_sizes/font_size = 19
+theme_override_colors/font_color = Color(0.95, 0.9, 0.7, 1)
+text = "Stones: oooooo"
 
-[node name="HPNumber" type="Label" parent="UI/HPBar"]
+[node name="FlockLabel" type="Label" parent="UI"]
+anchor_left = 0.72
 anchor_right = 1.0
-anchor_bottom = 1.0
+offset_top = 64.0
+offset_bottom = 90.0
+offset_right = -18.0
+horizontal_alignment = 2
+theme_override_font_sizes/font_size = 19
+theme_override_colors/font_color = Color(0.9, 0.9, 0.85, 1)
+text = "Flock: 4"
+
+[node name="ComboLabel" type="Label" parent="UI"]
+anchor_right = 1.0
+anchor_top = 0.82
+anchor_bottom = 0.88
 horizontal_alignment = 1
-vertical_alignment = 1
-theme_override_font_sizes/font_size = 16
-text = "5 / 5"
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
+text = ""
