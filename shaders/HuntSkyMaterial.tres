@@ -4,6 +4,6 @@
 
 [resource]
 shader = ExtResource("1")
-shader_parameter/top_color = Color(0.24, 0.41, 0.62, 1)
-shader_parameter/horizon_color = Color(0.88, 0.7, 0.44, 1)
-shader_parameter/horizon = 0.63
+shader_parameter/top_color = Color(0.22, 0.4, 0.62, 1)
+shader_parameter/horizon_color = Color(0.9, 0.73, 0.47, 1)
+shader_parameter/horizon = 0.45

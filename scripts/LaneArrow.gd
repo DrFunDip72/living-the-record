@@ -4,6 +4,9 @@ var team: int = 0
 var damage: float = 6.0
 var velocity: Vector2 = Vector2.ZERO
 var gravity: float = 260.0
+var max_y: float = 396.0
+var target_group: String = "lane_unit"
+var hit_offset: Vector2 = Vector2(0, -22)
 var spent: bool = false
 
 
@@ -22,10 +25,10 @@ func _process(delta: float) -> void:
 	position += velocity * delta
 	rotation = velocity.angle()
 
-	for u in get_tree().get_nodes_in_group("lane_unit"):
+	for u in get_tree().get_nodes_in_group(target_group):
 		if not is_instance_valid(u) or u.dead or u.team == team:
 			continue
-		if position.distance_to(u.position + Vector2(0, -22)) < 18.0:
+		if position.distance_to(u.global_position + hit_offset) < 18.0:
 			spent = true
 			u.take_hit(damage)
 			queue_free()
@@ -40,7 +43,7 @@ func _process(delta: float) -> void:
 			queue_free()
 			return
 
-	if position.y > 396.0 or position.x < -60.0 or position.x > 1020.0:
+	if position.y > max_y or position.x < -60.0 or position.x > 1020.0:
 		queue_free()
 	queue_redraw()
 

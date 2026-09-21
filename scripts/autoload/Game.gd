@@ -87,6 +87,29 @@ var levels: Array = [
 		"score_key": "moronis_line",
 		"color": Color(0.45, 0.45, 0.5, 1),
 	},
+	{
+		"id": "war_chapters",
+		"name": "The War Chapters",
+		"tagline": "Plan the ambush. Command the battle.",
+		"description": "Top-down command of whole companies across three real battles: the ambush at Sidon, the walls of Noah, and the decoy at Mulek. Place your men, then order them into the fight.",
+		"icon": "war",
+		"reference": "Alma 43-52",
+		"scene": "res://scenes/MiniGameWarChapters.tscn",
+		"before": "The war chapters of Alma are not just stories of courage -- they are stories of preparation and wisdom. Moroni studied the land, hid his armies, fortified his cities, and used decoys, because he believed God expected him to use every means he had.
+
+\"...Moroni... did not know... but... it was not the will of God that they should be destroyed... and he did prepare...\"
+
+BEFORE each battle: pick a unit type below and click the lit ground to place companies. Men placed in trees are hidden and strike at double force.
+DURING the battle: drag to select your men, right-click to send them somewhere.",
+		"after": "Moroni's victories came from preparation, not luck -- knowing the ground, placing his people wisely, and trusting God while still doing everything in his power.
+
+Where in your life are you waiting for deliverance while leaving your own preparation undone?",
+		"lose_text": "The battle was lost. In the war chapters, the difference was almost always what was done before the fighting began.
+
+Try again -- study the ground and place your men with purpose.",
+		"score_key": "war_chapters",
+		"color": Color(0.62, 0.3, 0.26, 1),
+	},
 ]
 
 var current_level_id: String = ""

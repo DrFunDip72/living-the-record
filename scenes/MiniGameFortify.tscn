@@ -48,6 +48,8 @@ script = ExtResource("2")
 [node name="EnemyFort" type="Node2D" parent="."]
 position = Vector2(894, 392)
 script = ExtResource("2")
+hp = 110.0
+max_hp = 110.0
 
 [node name="Units" type="Node2D" parent="."]
 

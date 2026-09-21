@@ -10,7 +10,7 @@ const HUNGER_DRAIN := 3.4
 const HUNGER_PER_KILL := 32.0
 const DRAW_TIME := 0.85
 const MIN_POWER := 0.3
-const BOW_ANCHOR := Vector2(196, 452)
+const BOW_ANCHOR := Vector2(480, 466)
 
 var hunger: float = MAX_HUNGER
 var score: int = 0
@@ -19,7 +19,7 @@ var missed: int = 0
 var drawing: bool = false
 var draw_power: float = 0.0
 var hold_time: float = 0.0
-var aim_pos: Vector2 = Vector2(620, 330)
+var aim_pos: Vector2 = Vector2(480, 330)
 var finished: bool = false
 var spawn_delay: float = 0.8
 var animal: Node2D = null
@@ -111,9 +111,9 @@ func _release(target: Vector2) -> void:
 	hold_time = 0.0
 	var dir: Vector2 = (target - BOW_ANCHOR).normalized()
 	var arrow := ARROW_SCENE.instantiate()
-	arrow.position = BOW_ANCHOR + dir * 64.0
-	arrow.velocity = dir * (300.0 + power * 620.0)
+	arrow.position = BOW_ANCHOR + dir * 40.0
 	arrow.resolved.connect(_on_arrow_resolved)
+	arrow.launch(dir, power)
 	arrows_root.add_child(arrow)
 
 
@@ -130,9 +130,9 @@ func _on_arrow_resolved(kind: String, pos: Vector2, points: int) -> void:
 			spawn_delay = 1.2
 		"body":
 			missed += 1
-			Fx.spawn_hit_burst(self, pos, Color(0.8, 0.5, 0.3, 1), 10)
-			_say("Only a graze -- it bolted.")
-			spawn_delay = 1.4
+			Fx.spawn_hit_burst(self, pos, Color(0.65, 0.08, 0.06, 1), 14)
+			_say("Hit! It is wounded and bleeding -- finish it.")
+			spawn_delay = 0.0
 		_:
 			missed += 1
 			Fx.spawn_hit_burst(self, pos, Color(0.6, 0.55, 0.45, 0.8), 8)
@@ -147,7 +147,7 @@ func _on_arrow_resolved(kind: String, pos: Vector2, points: int) -> void:
 func _spawn_animal() -> void:
 	var a := ANIMAL_SCENE.instantiate()
 	animals_root.add_child(a)
-	a.setup(randf())
+	a.setup(randf_range(0.15, 1.0))
 	a.killed.connect(func(_p): spawn_delay = 1.2)
 	a.escaped.connect(func():
 		spawn_delay = 1.0

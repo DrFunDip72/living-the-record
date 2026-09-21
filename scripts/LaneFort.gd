@@ -5,8 +5,8 @@ signal destroyed(team: int)
 const INK := Color(0.07, 0.06, 0.08, 1)
 
 var team: int = 0
-var hp: float = 120.0
-var max_hp: float = 120.0
+var hp: float = 150.0
+var max_hp: float = 150.0
 var crossbow_level: int = 1
 var crossbow_range: float = 300.0
 var arrows_root: Node = null

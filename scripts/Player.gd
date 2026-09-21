@@ -3,6 +3,7 @@ extends CharacterBody2D
 @export var speed: float = 220.0
 @export var bounds: Rect2 = Rect2(20, 20, 920, 500)
 @export var mouse_controlled: bool = false
+@export var aim_with_mouse: bool = false
 var last_direction: Vector2 = Vector2.DOWN
 var knockback: Vector2 = Vector2.ZERO
 
@@ -34,8 +35,11 @@ func _physics_process(delta: float) -> void:
 		dir = Vector2(x, y)
 		if dir.length() > 1.0:
 			dir = dir.normalized()
-		if dir.length() > 0.1:
+		if dir.length() > 0.1 and not aim_with_mouse:
 			last_direction = dir.normalized()
+
+	if aim_with_mouse:
+		last_direction = get_aim_direction()
 
 	velocity = dir * speed + knockback
 	knockback = knockback.move_toward(Vector2.ZERO, 500.0 * delta)

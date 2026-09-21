@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/FormationGame.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/AllyFighter.gd" id="2"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/common/JuiceCamera.gd" id="5"]
 [ext_resource type="Script" path="res://scripts/common/WaveSpawner.gd" id="6"]
 [ext_resource type="Material" path="res://shaders/BattlefieldMaterial.tres" id="7"]
+[ext_resource type="Script" path="res://scripts/common/Weapon.gd" id="8"]
 
 [sub_resource type="CircleShape2D" id="PlayerCircle"]
 radius = 14.0
@@ -40,6 +41,11 @@ fill_color = Color(0.3, 0.45, 0.85, 1)
 outline_color = Color(0.08, 0.14, 0.3, 1)
 radius = 10.0
 
+[node name="Weapon" type="Node2D" parent="AlliesContainer/Ally1"]
+script = ExtResource("8")
+kind = "sword"
+reach = 24.0
+
 [node name="Ally2" type="Node2D" parent="AlliesContainer"]
 position = Vector2(170, 130)
 script = ExtResource("2")
@@ -48,6 +54,11 @@ script = ExtResource("2")
 fill_color = Color(0.3, 0.45, 0.85, 1)
 outline_color = Color(0.08, 0.14, 0.3, 1)
 radius = 10.0
+
+[node name="Weapon" type="Node2D" parent="AlliesContainer/Ally2"]
+script = ExtResource("8")
+kind = "sword"
+reach = 24.0
 
 [node name="Ally3" type="Node2D" parent="AlliesContainer"]
 position = Vector2(110, 340)
@@ -58,6 +69,11 @@ fill_color = Color(0.3, 0.45, 0.85, 1)
 outline_color = Color(0.08, 0.14, 0.3, 1)
 radius = 10.0
 
+[node name="Weapon" type="Node2D" parent="AlliesContainer/Ally3"]
+script = ExtResource("8")
+kind = "sword"
+reach = 24.0
+
 [node name="Ally4" type="Node2D" parent="AlliesContainer"]
 position = Vector2(170, 400)
 script = ExtResource("2")
@@ -66,6 +82,11 @@ script = ExtResource("2")
 fill_color = Color(0.3, 0.45, 0.85, 1)
 outline_color = Color(0.08, 0.14, 0.3, 1)
 radius = 10.0
+
+[node name="Weapon" type="Node2D" parent="AlliesContainer/Ally4"]
+script = ExtResource("8")
+kind = "sword"
+reach = 24.0
 
 [node name="Commander" type="Node2D" parent="."]
 position = Vector2(80, 270)
@@ -78,7 +99,7 @@ radius = 18.0
 [node name="Player" type="CharacterBody2D" parent="."]
 position = Vector2(250, 270)
 script = ExtResource("3")
-mouse_controlled = true
+aim_with_mouse = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
 shape = SubResource("PlayerCircle")
@@ -87,6 +108,11 @@ shape = SubResource("PlayerCircle")
 fill_color = Color(1.0, 0.85, 0.2, 1)
 outline_color = Color(0.5, 0.35, 0.05, 1)
 radius = 14.0
+
+[node name="Weapon" type="Node2D" parent="Player"]
+script = ExtResource("8")
+kind = "sword"
+reach = 34.0
 
 [node name="Camera2D" type="Camera2D" parent="Player"]
 script = ExtResource("5")

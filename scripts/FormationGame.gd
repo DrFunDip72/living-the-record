@@ -14,6 +14,7 @@ var _mouse_was_pressed: bool = false
 
 @onready var player: CharacterBody2D = $Player
 @onready var camera: Camera2D = $Player/Camera2D
+@onready var weapon: Node2D = $Player/Weapon
 @onready var commander: Node2D = $Commander
 @onready var allies_container: Node2D = $AlliesContainer
 @onready var order_label: Label = $UI/OrderBubble
@@ -26,7 +27,7 @@ var _mouse_was_pressed: bool = false
 
 
 func _ready() -> void:
-	hint_label.text = "Move the mouse to lead your warrior. Click to swing your sword."
+	hint_label.text = "WASD to move. The mouse aims your sword. Click to swing."
 	hp_bar.max_value = MAX_HP
 	_update_hp_display()
 
@@ -63,6 +64,8 @@ func _physics_process(delta: float) -> void:
 	if Input.is_action_just_pressed("ui_accept") or Input.is_key_pressed(KEY_SPACE) or mouse_just_pressed:
 		_try_attack()
 
+	weapon.set_aim(player.last_direction.angle())
+
 	var in_formation: bool = player.global_position.distance_to(commander.global_position) <= FORMATION_RADIUS
 	for ally in allies_container.get_children():
 		if ally.has_method("set_buffed"):
@@ -88,25 +91,10 @@ func _try_attack() -> void:
 		if to_e.length() <= ATTACK_RANGE and facing.dot(to_e.normalized()) > 0.3:
 			e.take_damage(1, player.global_position)
 			hit_any = true
+	weapon.swing()
 	if hit_any:
 		camera.shake(0.3)
 		Fx.hit_stop(0.04)
-	_spawn_swing_fx(facing)
-
-
-func _spawn_swing_fx(facing: Vector2) -> void:
-	var fx := Polygon2D.new()
-	var angle: float = facing.angle()
-	var points := PackedVector2Array()
-	points.append(Vector2.ZERO)
-	for a in range(-3, 4):
-		var ang: float = angle + a * 0.15
-		points.append(Vector2(cos(ang), sin(ang)) * ATTACK_RANGE)
-	fx.polygon = points
-	fx.color = Color(1, 1, 0.8, 0.55)
-	fx.position = player.position
-	add_child(fx)
-	get_tree().create_timer(0.12).timeout.connect(fx.queue_free)
 
 
 func _on_player_hit(amount: int, from_pos: Vector2) -> void:

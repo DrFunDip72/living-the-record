@@ -15,13 +15,13 @@ const UNIT_TYPES := {
 
 const UNIT_ORDER := ["sword", "spear", "shield", "archer", "captain"]
 
-var gold: float = 70.0
-var income: float = 7.0
+var gold: float = 130.0
+var income: float = 11.0
 var income_level: int = 1
 var armor_level: int = 1
 var kills: int = 0
 var finished: bool = false
-var enemy_timer: float = 3.0
+var enemy_timer: float = 5.0
 var elapsed: float = 0.0
 
 @onready var units_root: Node2D = $Units
@@ -105,7 +105,7 @@ func _process(delta: float) -> void:
 	enemy_timer -= delta
 	if enemy_timer <= 0.0:
 		_enemy_spawn()
-		enemy_timer = maxf(1.1, 3.4 - elapsed * 0.02)
+		enemy_timer = maxf(1.7, 4.6 - elapsed * 0.014)
 
 	_update_hud()
 
@@ -133,7 +133,7 @@ func _on_upgrade(key: String) -> void:
 			player_fort.crossbow_level += 1
 		"income":
 			income_level += 1
-			income += 4.0
+			income += 6.0
 		"armor":
 			armor_level += 1
 			player_fort.max_hp += 45.0
@@ -144,10 +144,10 @@ func _on_upgrade(key: String) -> void:
 
 func _enemy_spawn() -> void:
 	var pool := ["sword", "sword", "spear"]
-	if elapsed > 25.0:
+	if elapsed > 40.0:
 		pool.append("archer")
 		pool.append("shield")
-	if elapsed > 55.0:
+	if elapsed > 85.0:
 		pool.append("captain")
 		pool.append("spear")
 	var key: String = pool[randi() % pool.size()]
@@ -159,7 +159,12 @@ func _spawn_unit(team: int, key: String, x: float) -> void:
 	var u := UNIT_SCENE.instantiate()
 	u.position = Vector2(x, GROUND_Y)
 	units_root.add_child(u)
-	u.configure(team, key, info)
+	var tuned := info.duplicate()
+	if team == 1:
+		var ramp: float = clampf(0.78 + elapsed * 0.0035, 0.78, 1.0)
+		tuned["hp"] = info["hp"] * ramp
+		tuned["dmg"] = info["dmg"] * ramp
+	u.configure(team, key, tuned)
 	u.scale = Vector2(1.3, 1.3)
 	u.arrows_root = arrows_root
 	u.died.connect(_on_unit_died)
@@ -170,7 +175,7 @@ func _on_unit_died(unit: Node) -> void:
 		return
 	if unit.team == 1:
 		kills += 1
-		gold += 9.0
+		gold += 12.0
 	_update_hud()
 
 

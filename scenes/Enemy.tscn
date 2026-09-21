@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/Enemy.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/common/UnitShape.tscn" id="2"]
+[ext_resource type="Script" path="res://scripts/common/Weapon.gd" id="3"]
 
 [sub_resource type="CircleShape2D" id="EnemyCircle"]
 radius = 12.0
@@ -16,3 +17,10 @@ shape = SubResource("EnemyCircle")
 fill_color = Color(0.82, 0.22, 0.22, 1)
 outline_color = Color(0.32, 0.05, 0.05, 1)
 radius = 13.0
+
+[node name="Weapon" type="Node2D" parent="."]
+script = ExtResource("3")
+kind = "sword"
+reach = 24.0
+blade_color = Color(0.92, 0.86, 0.8, 1)
+grip_color = Color(0.3, 0.14, 0.12, 1)

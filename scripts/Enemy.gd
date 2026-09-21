@@ -20,6 +20,7 @@ var _base_fill: Color
 var _base_outline: Color
 
 @onready var visual: Node2D = $Visual
+@onready var weapon: Node2D = $Weapon
 
 
 func _ready() -> void:
@@ -40,12 +41,17 @@ func _physics_process(delta: float) -> void:
 	var dist := to_target.length()
 	var move := Vector2.ZERO
 
+	weapon.set_aim(to_target.angle())
+
 	if winding_up:
 		wind_timer -= delta
+		weapon.set_windup(1.0 - maxf(wind_timer, 0.0) / maxf(windup_time, 0.001))
 		if wind_timer <= 0.0:
 			winding_up = false
 			attack_timer = attack_cooldown
 			visual.set_colors(_base_fill, _base_outline)
+			weapon.set_windup(0.0)
+			weapon.swing()
 			if dist <= stop_distance * 1.4:
 				hit_target.emit(contact_damage, global_position)
 	else:
@@ -75,6 +81,7 @@ func take_damage(amount: int, from_pos: Vector2) -> void:
 	if winding_up:
 		winding_up = false
 		visual.set_colors(_base_fill, _base_outline)
+		weapon.set_windup(0.0)
 	if hp <= 0:
 		defeated.emit()
 		queue_free()

@@ -17,6 +17,7 @@ var base_fill: Color
 var base_outline: Color
 
 @onready var visual: Node2D = $Visual
+@onready var weapon: Node2D = get_node_or_null("Weapon")
 
 
 func _ready() -> void:
@@ -31,12 +32,16 @@ func _process(delta: float) -> void:
 	var target := _find_nearest_enemy()
 	if target:
 		var to_target: Vector2 = target.global_position - global_position
+		if weapon:
+			weapon.set_aim(to_target.angle())
 		if to_target.length() > attack_range:
 			position += to_target.normalized() * speed * delta
 		elif attack_timer <= 0.0:
 			attack_timer = buffed_attack_cooldown if buffed else base_attack_cooldown
 			target.take_damage(damage, global_position)
 			visual.pop(1.15)
+			if weapon:
+				weapon.swing()
 	else:
 		var to_home: Vector2 = home_position - position
 		if to_home.length() > 4.0:

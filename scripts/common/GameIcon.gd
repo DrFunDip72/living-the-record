@@ -34,6 +34,8 @@ func _draw() -> void:
 			_draw_sling(cx, cy)
 		"tower":
 			_draw_tower(cx, cy)
+		"war":
+			_draw_war(cx, cy)
 		_:
 			draw_circle(Vector2(cx, cy), 26.0, accent)
 
@@ -145,3 +147,23 @@ func _draw_tower(cx: float, cy: float) -> void:
 	])
 	draw_colored_polygon(flag, Color(0.85, 0.25, 0.2, 1))
 	draw_rect(Rect2(cx - 7, cy + 12, 14, 20), Color(0.15, 0.12, 0.1, 1))
+
+
+func _draw_war(cx: float, cy: float) -> void:
+	# banner pole + title of liberty
+	draw_line(Vector2(cx - 18, cy + 34), Vector2(cx - 18, cy - 34), INK, 5.0)
+	var flag := PackedVector2Array([
+		Vector2(cx - 16, cy - 32), Vector2(cx + 26, cy - 26),
+		Vector2(cx + 16, cy - 14), Vector2(cx + 26, cy - 2), Vector2(cx - 16, cy - 6),
+	])
+	draw_colored_polygon(flag, INK)
+	var flag_in := PackedVector2Array([
+		Vector2(cx - 14, cy - 29), Vector2(cx + 20, cy - 24),
+		Vector2(cx + 12, cy - 14), Vector2(cx + 20, cy - 5), Vector2(cx - 14, cy - 9),
+	])
+	draw_colored_polygon(flag_in, accent)
+	# formation of dots (companies)
+	for i in range(3):
+		for j in range(2):
+			draw_circle(Vector2(cx + 2 + i * 12, cy + 14 + j * 12), 4.5, INK)
+			draw_circle(Vector2(cx + 2 + i * 12, cy + 14 + j * 12), 3.0, Color(0.85, 0.82, 0.72, 1))
