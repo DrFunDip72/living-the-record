@@ -65,6 +65,8 @@ func _process(delta: float) -> void:
 
 	# --- imperfect aim: lag toward mouse + sway that grows as you hold ---
 	var mouse: Vector2 = get_viewport().get_mouse_position()
+	if Touch.is_touch():
+		mouse += Vector2(0, -90)  # keep the sight visible above your thumb
 	aim_pos = aim_pos.lerp(mouse, 1.0 - exp(-7.0 * delta))
 	var sway_amp: float = 2.0 + hold_time * 9.0
 	var sway := Vector2(sin(_t * 1.9) * sway_amp, cos(_t * 2.7) * sway_amp * 0.7)

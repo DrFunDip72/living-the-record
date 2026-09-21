@@ -15,7 +15,11 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	var dir := Vector2.ZERO
 
-	if mouse_controlled:
+	if Touch.active and Touch.use_joystick:
+		dir = Touch.move_vector
+		if dir.length() > 0.15 and not aim_with_mouse:
+			last_direction = dir.normalized()
+	elif mouse_controlled:
 		var to_mouse: Vector2 = get_global_mouse_position() - global_position
 		if to_mouse.length() > 6.0:
 			dir = to_mouse.normalized()
@@ -53,6 +57,14 @@ func apply_knockback(dir: Vector2, strength: float) -> void:
 
 
 func get_aim_direction() -> Vector2:
+	if Touch.active:
+		if Touch.use_aim and Touch.aim_held:
+			var to_touch: Vector2 = Touch.aim_world(self) - global_position
+			if to_touch.length() > 0.1:
+				return to_touch.normalized()
+		if Touch.move_vector.length() > 0.15:
+			return Touch.move_vector.normalized()
+		return last_direction
 	var to_mouse: Vector2 = get_global_mouse_position() - global_position
 	if to_mouse.length() < 0.1:
 		return last_direction

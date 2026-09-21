@@ -30,7 +30,7 @@ func _build_tile(lvl: Dictionary) -> Control:
 	var accent: Color = lvl.get("color", Color(0.5, 0.5, 0.5, 1))
 
 	var btn := Button.new()
-	btn.custom_minimum_size = Vector2(268, 196)
+	btn.custom_minimum_size = Vector2(212, 200)
 	btn.text = ""
 
 	var style := StyleBoxFlat.new()

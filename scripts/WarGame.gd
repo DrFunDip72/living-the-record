@@ -174,14 +174,10 @@ func _finish_drag(p: Vector2) -> void:
 	var rect := Rect2(drag_start, p - drag_start).abs()
 	drag_start = null
 	drag_now = null
-	for u in selected:
-		if is_instance_valid(u):
-			u.selected = false
-	selected.clear()
-	if rect.size.length() < 8.0:
-		# click-select nearest friendly
+	if rect.size.length() < 12.0:
+		# tap: on a man -> select him; on open ground -> send the selection there
 		var best = null
-		var best_d := 34.0
+		var best_d := 38.0
 		for u in units_root.get_children():
 			if u.team != 0 or u.dead:
 				continue
@@ -189,10 +185,23 @@ func _finish_drag(p: Vector2) -> void:
 			if d < best_d:
 				best_d = d
 				best = u
-		if best != null:
-			best.selected = true
-			selected.append(best)
+		if best == null:
+			selected = selected.filter(func(u): return is_instance_valid(u))
+			for u in selected:
+				u.order_move(p + Vector2(randf_range(-18, 18), randf_range(-18, 18)))
+			queue_redraw()
+			return
+		for u in selected:
+			if is_instance_valid(u):
+				u.selected = false
+		selected.clear()
+		best.selected = true
+		selected.append(best)
 	else:
+		for u in selected:
+			if is_instance_valid(u):
+				u.selected = false
+		selected.clear()
 		for u in units_root.get_children():
 			if u.team == 0 and not u.dead and rect.has_point(u.global_position):
 				u.selected = true
@@ -385,7 +394,7 @@ func _update_status() -> void:
 				extra = "   Escaped: %d / %d" % [escaped_count, ESCAPE_LIMIT]
 			elif level["objective"] == "capture":
 				extra = "   City holds while any defender is inside"
-			status_label.text = "Drag to select, right-click to move, CHARGE to attack.   Yours %d   Theirs %d%s" % [friends, foes, extra]
+			status_label.text = "Drag a box or tap a man to select; tap ground to send them. CHARGE to attack.   Yours %d  Theirs %d%s" % [friends, foes, extra]
 		_:
 			pass
 

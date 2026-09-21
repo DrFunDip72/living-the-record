@@ -76,6 +76,19 @@ text = "Play Again"
 custom_minimum_size = Vector2(180, 0)
 text = "Back to Menu"
 
+[node name="PauseLayer" type="CanvasLayer" parent="."]
+layer = 60
+
+[node name="PauseButton" type="Button" parent="PauseLayer"]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -56.0
+offset_top = 4.0
+offset_right = -8.0
+offset_bottom = 46.0
+theme_override_font_sizes/font_size = 20
+text = "II"
+
 [node name="PauseOverlay" type="CanvasLayer" parent="."]
 layer = 10
 

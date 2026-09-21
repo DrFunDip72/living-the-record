@@ -47,6 +47,9 @@ func _ready() -> void:
 	randomize()
 	goal_area.body_entered.connect(_on_goal_entered)
 	status_label.text = "Reach the escape point. Break line of sight to lose them."
+	Touch.configure({"joystick": true})
+	if Touch.active:
+		status_label.text = "Drag your thumb on the left to sneak. Break line of sight to lose them."
 	_build_camp()
 
 
@@ -154,3 +157,7 @@ func _finish(won: bool) -> void:
 	flash.anchor_bottom = 1.0
 	add_child(flash)
 	get_tree().create_timer(0.4).timeout.connect(func(): game_finished.emit(won, score))
+
+
+func _exit_tree() -> void:
+	Touch.clear()

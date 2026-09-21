@@ -19,6 +19,7 @@ var current_instance: Node = null
 @onready var pause_overlay: CanvasLayer = $PauseOverlay
 @onready var resume_button: Button = $PauseOverlay/ResumeButton
 @onready var quit_button: Button = $PauseOverlay/QuitButton
+@onready var pause_button: Button = $PauseLayer/PauseButton
 
 
 func _ready() -> void:
@@ -31,6 +32,8 @@ func _ready() -> void:
 	menu_button.pressed.connect(_on_menu_pressed)
 	resume_button.pressed.connect(func(): _toggle_pause(false))
 	quit_button.pressed.connect(_on_menu_pressed)
+	pause_button.pressed.connect(func(): _toggle_pause(true))
+	pause_button.visible = false
 	pause_overlay.visible = false
 	pause_overlay.process_mode = Node.PROCESS_MODE_ALWAYS
 	_show_before()
@@ -44,6 +47,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _toggle_pause(paused: bool) -> void:
 	get_tree().paused = paused
 	pause_overlay.visible = paused
+	Touch.visible = Touch.active and not paused
 
 
 func _show_before() -> void:
@@ -60,6 +64,7 @@ func _show_before() -> void:
 
 func _start_gameplay() -> void:
 	state = State.PLAYING
+	pause_button.visible = true
 	ui.visible = false
 	gameplay_root.visible = true
 	var scene: PackedScene = load(level["scene"])
@@ -70,6 +75,7 @@ func _start_gameplay() -> void:
 
 func _on_game_finished(won: bool, score: int = -1) -> void:
 	_toggle_pause(false)
+	pause_button.visible = false
 	if current_instance:
 		current_instance.queue_free()
 		current_instance = null
@@ -103,4 +109,5 @@ func _on_play_pressed() -> void:
 
 func _on_menu_pressed() -> void:
 	get_tree().paused = false
+	Touch.clear()
 	Transition.goto_scene("res://scenes/LevelSelect.tscn")

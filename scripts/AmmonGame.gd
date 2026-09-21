@@ -44,6 +44,11 @@ func _ready() -> void:
 		s.add_to_group("sheep")
 	hp_bar.max_value = MAX_HP
 	weapon.start_spin()
+	Touch.configure({"joystick": true, "aim": true, "buttons": ["Sword"]})
+	if Touch.active:
+		hint_label.text = "Left thumb: move.  Tap right side: sling a stone there.  SWORD button: swing."
+		Touch.aim_pressed.connect(_on_touch_aim)
+		Touch.button_pressed.connect(_on_touch_button)
 
 	wave_spawner.enemy_scene = preload("res://scenes/Enemy.tscn")
 	wave_spawner.mode = "endless"
@@ -158,13 +163,14 @@ func _physics_process(delta: float) -> void:
 			combo = 0
 			_update_hud()
 
-	var pressed := Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
-	if pressed and not _mouse_was_pressed:
-		_try_sling()
-	_mouse_was_pressed = pressed
+	if not Touch.active:
+		var pressed := Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+		if pressed and not _mouse_was_pressed:
+			_try_sling()
+		_mouse_was_pressed = pressed
 
-	if (Input.is_action_just_pressed("ui_accept") or Input.is_key_pressed(KEY_SPACE)) and melee_timer <= 0.0:
-		_melee_attack()
+		if (Input.is_action_just_pressed("ui_accept") or Input.is_key_pressed(KEY_SPACE)) and melee_timer <= 0.0:
+			_melee_attack()
 
 	var aim_dir: Vector2 = player.get_aim_direction()
 	weapon.set_aim(aim_dir.angle())
@@ -179,7 +185,7 @@ func _physics_process(delta: float) -> void:
 
 
 func _try_sling() -> void:
-	if reload_timer > 0.0:
+	if finished or reload_timer > 0.0:
 		return
 	if stones <= 0:
 		_say_out_of_stones()
@@ -253,3 +259,20 @@ func _finish() -> void:
 	flash.anchor_bottom = 1.0
 	add_child(flash)
 	get_tree().create_timer(0.4).timeout.connect(func(): game_finished.emit(false, score))
+
+
+func _on_touch_aim(_p: Vector2) -> void:
+	_try_sling()
+
+
+func _on_touch_button(n: String) -> void:
+	if n == "Sword" and melee_timer <= 0.0 and not finished:
+		_melee_attack()
+
+
+func _exit_tree() -> void:
+	if Touch.aim_pressed.is_connected(_on_touch_aim):
+		Touch.aim_pressed.disconnect(_on_touch_aim)
+	if Touch.button_pressed.is_connected(_on_touch_button):
+		Touch.button_pressed.disconnect(_on_touch_button)
+	Touch.clear()

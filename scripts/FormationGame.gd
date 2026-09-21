@@ -28,6 +28,9 @@ var _mouse_was_pressed: bool = false
 
 func _ready() -> void:
 	hint_label.text = "WASD to move. The mouse aims your sword. Click to swing."
+	Touch.configure({"joystick": true, "aim": true})
+	if Touch.active:
+		hint_label.text = "Left thumb: move.  Right thumb: tap or hold where you want to strike."
 	hp_bar.max_value = MAX_HP
 	_update_hp_display()
 
@@ -58,11 +61,15 @@ func _physics_process(delta: float) -> void:
 		return
 
 	attack_cooldown_timer = max(0.0, attack_cooldown_timer - delta)
-	var mouse_pressed := Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
-	var mouse_just_pressed := mouse_pressed and not _mouse_was_pressed
-	_mouse_was_pressed = mouse_pressed
-	if Input.is_action_just_pressed("ui_accept") or Input.is_key_pressed(KEY_SPACE) or mouse_just_pressed:
-		_try_attack()
+	if Touch.active:
+		if Touch.aim_held:
+			_try_attack()
+	else:
+		var mouse_pressed := Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+		var mouse_just_pressed := mouse_pressed and not _mouse_was_pressed
+		_mouse_was_pressed = mouse_pressed
+		if Input.is_action_just_pressed("ui_accept") or Input.is_key_pressed(KEY_SPACE) or mouse_just_pressed:
+			_try_attack()
 
 	weapon.set_aim(player.last_direction.angle())
 
@@ -135,3 +142,7 @@ func _finish(won: bool) -> void:
 	flash.anchor_bottom = 1.0
 	add_child(flash)
 	get_tree().create_timer(0.35).timeout.connect(func(): game_finished.emit(won, -1))
+
+
+func _exit_tree() -> void:
+	Touch.clear()

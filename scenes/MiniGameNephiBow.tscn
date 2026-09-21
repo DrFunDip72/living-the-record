@@ -99,7 +99,7 @@ anchor_right = 1.0
 offset_top = 30.0
 offset_bottom = 54.0
 horizontal_alignment = 2
-offset_right = -18.0
+offset_right = -64.0
 theme_override_font_sizes/font_size = 18
 text = "Taken: 0    Score: 0"
 
