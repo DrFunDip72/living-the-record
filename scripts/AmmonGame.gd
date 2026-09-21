@@ -20,6 +20,8 @@ var combo_timer: float = 0.0
 var finished: bool = false
 var hp: int = MAX_HP
 var retarget_timer: float = 0.0
+var carriers: Dictionary = {}   # robber -> {sheep, marker}
+var sheep_home: Dictionary = {}
 var _mouse_was_pressed: bool = false
 
 @onready var player: CharacterBody2D = $Player
@@ -42,6 +44,7 @@ func _ready() -> void:
 	hint_label.text = "WASD to move. The arrow shows your throw. Left-click slings, SPACE swings. Stones reset each wave."
 	for s in flock_root.get_children():
 		s.add_to_group("sheep")
+		sheep_home[s] = s.position
 	hp_bar.max_value = MAX_HP
 	weapon.start_spin()
 	Touch.configure({"joystick": true, "aim": true, "buttons": ["Sword"]})
@@ -94,9 +97,14 @@ func _on_enemy_spawned(enemy: Node) -> void:
 
 
 func _on_sheep_reached(_amount: int, _from_pos: Vector2, enemy: Node) -> void:
-	if finished:
+	if finished or not is_instance_valid(enemy):
 		return
-	var target = enemy.target if is_instance_valid(enemy) else null
+	if carriers.has(enemy):
+		# made it to the edge with a sheep -- the flock is broken
+		ammo_label.text = "A SHEEP WAS CARRIED OFF!"
+		_finish()
+		return
+	var target = enemy.target
 	if target == player:
 		hp -= 1
 		_update_hp()
@@ -108,16 +116,44 @@ func _on_sheep_reached(_amount: int, _from_pos: Vector2, enemy: Node) -> void:
 			_finish()
 		return
 	if target != null and is_instance_valid(target) and target.is_in_group("sheep"):
-		Fx.spawn_hit_burst(self, target.global_position, Color(0.95, 0.9, 0.8, 1), 14)
-		target.queue_free()
-		camera.shake(0.6)
-		if is_instance_valid(enemy):
-			enemy.setup(_nearest_sheep_or_player())
-		_update_hud()
-		if get_tree().get_nodes_in_group("sheep").is_empty():
-			_finish()
-	else:
-		camera.shake(0.4)
+		_grab(enemy, target)
+
+
+func _grab(enemy: Node, sheep: Node2D) -> void:
+	sheep.remove_from_group("sheep")
+	var marker := Node2D.new()
+	marker.position = _escape_point(enemy.global_position)
+	add_child(marker)
+	carriers[enemy] = {"sheep": sheep, "marker": marker}
+	enemy.setup(marker)
+	enemy.speed *= 0.72
+	enemy.defeated.connect(_on_carrier_defeated.bind(enemy))
+	camera.shake(0.4)
+	combo_label.text = "A robber grabbed a sheep -- stop him!"
+	_update_hud()
+
+
+func _escape_point(from: Vector2) -> Vector2:
+	var opts := [Vector2(1000, from.y), Vector2(from.x, -40), Vector2(from.x, 580)]
+	var best: Vector2 = opts[0]
+	for o in opts:
+		if from.distance_to(o) < from.distance_to(best):
+			best = o
+	return best
+
+
+func _on_carrier_defeated(enemy: Node) -> void:
+	if not carriers.has(enemy):
+		return
+	var c: Dictionary = carriers[enemy]
+	carriers.erase(enemy)
+	if is_instance_valid(c["marker"]):
+		c["marker"].queue_free()
+	if is_instance_valid(c["sheep"]):
+		c["sheep"].add_to_group("sheep")
+		Fx.spawn_hit_burst(self, c["sheep"].global_position, Color(1, 1, 0.8, 1), 12)
+		combo_label.text = "Sheep rescued!"
+	_update_hud()
 
 
 func _from_pos_safe(enemy: Node) -> Vector2:
@@ -176,11 +212,18 @@ func _physics_process(delta: float) -> void:
 	weapon.set_aim(aim_dir.angle())
 	aim_indicator.set_state(aim_dir.angle(), stones > 0 and reload_timer <= 0.0)
 
+	for e in carriers.keys():
+		if is_instance_valid(e) and is_instance_valid(carriers[e]["sheep"]):
+			carriers[e]["sheep"].global_position = e.global_position + Vector2(0, 16)
+	for sh in get_tree().get_nodes_in_group("sheep"):
+		var home: Vector2 = sheep_home.get(sh, sh.position)
+		sh.position = sh.position.move_toward(home, 45.0 * delta)
+
 	retarget_timer -= delta
 	if retarget_timer <= 0.0:
 		retarget_timer = RETARGET_EVERY
 		for e in enemies_container.get_children():
-			if is_instance_valid(e):
+			if is_instance_valid(e) and e.is_in_group("enemy") and not carriers.has(e):
 				e.setup(_nearest_target_for(e.global_position))
 
 
@@ -219,7 +262,7 @@ func _melee_attack() -> void:
 	var dmg: int = 1 if combo < 3 else 2
 	var hit_any := false
 	for e in enemies_container.get_children():
-		if not is_instance_valid(e):
+		if not is_instance_valid(e) or not e.is_in_group("enemy"):
 			continue
 		var to_e: Vector2 = e.global_position - player.global_position
 		if to_e.length() <= MELEE_RANGE and facing.dot(to_e.normalized()) > 0.1:
@@ -242,7 +285,7 @@ func _melee_attack() -> void:
 func _update_hud() -> void:
 	score_label.text = "Score: %d    Wave %d" % [score, wave + 1]
 	var sheep_left := get_tree().get_nodes_in_group("sheep").size()
-	flock_label.text = "Flock: %d" % sheep_left
+	flock_label.text = "Flock: %d" % sheep_left if carriers.is_empty() else "Flock: %d  (%d STOLEN!)" % [sheep_left, carriers.size()]
 	if stones > 0:
 		ammo_label.text = "Stones: %s" % "o".repeat(stones)
 		ammo_label.add_theme_color_override("font_color", Color(0.95, 0.9, 0.7, 1))

@@ -13,6 +13,9 @@ var hp: int
 var attack_timer: float = 0.0
 var buffed: bool = false
 var home_position: Vector2
+var commander: Node2D = null
+var slot_offset: Vector2 = Vector2.ZERO
+const ENGAGE_RANGE := 150.0
 var base_fill: Color
 var base_outline: Color
 
@@ -29,6 +32,8 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	attack_timer = max(0.0, attack_timer - delta)
+	if commander != null and is_instance_valid(commander):
+		home_position = commander.position + slot_offset
 	var target := _find_nearest_enemy()
 	if target:
 		var to_target: Vector2 = target.global_position - global_position
@@ -45,7 +50,7 @@ func _process(delta: float) -> void:
 	else:
 		var to_home: Vector2 = home_position - position
 		if to_home.length() > 4.0:
-			position += to_home.normalized() * speed * 0.5 * delta
+			position += to_home.normalized() * minf(speed, to_home.length() * 4.0) * delta
 
 
 func _find_nearest_enemy() -> Node:
@@ -56,6 +61,8 @@ func _find_nearest_enemy() -> Node:
 		if not is_instance_valid(e):
 			continue
 		var d: float = global_position.distance_to(e.global_position)
+		if home_position.distance_to(e.global_position) > ENGAGE_RANGE:
+			continue
 		if d < nearest_dist:
 			nearest_dist = d
 			nearest = e

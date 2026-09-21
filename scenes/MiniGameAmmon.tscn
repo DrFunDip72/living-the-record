@@ -33,49 +33,49 @@ color = Color(1, 1, 1, 1)
 [node name="Flock" type="Node2D" parent="."]
 
 [node name="Sheep1" parent="Flock" instance=ExtResource("3")]
-position = Vector2(150, 200)
+position = Vector2(430, 230)
 fill_color = Color(0.96, 0.95, 0.92, 1)
 outline_color = Color(0.32, 0.3, 0.26, 1)
 radius = 11.0
 style = "sheep"
 
 [node name="Sheep2" parent="Flock" instance=ExtResource("3")]
-position = Vector2(196, 236)
+position = Vector2(476, 266)
 fill_color = Color(0.96, 0.95, 0.92, 1)
 outline_color = Color(0.32, 0.3, 0.26, 1)
 radius = 11.0
 style = "sheep"
 
 [node name="Sheep3" parent="Flock" instance=ExtResource("3")]
-position = Vector2(140, 278)
+position = Vector2(420, 308)
 fill_color = Color(0.96, 0.95, 0.92, 1)
 outline_color = Color(0.32, 0.3, 0.26, 1)
 radius = 11.0
 style = "sheep"
 
 [node name="Sheep4" parent="Flock" instance=ExtResource("3")]
-position = Vector2(210, 180)
+position = Vector2(490, 210)
 fill_color = Color(0.96, 0.95, 0.92, 1)
 outline_color = Color(0.32, 0.3, 0.26, 1)
 radius = 11.0
 style = "sheep"
 
 [node name="Sheep5" parent="Flock" instance=ExtResource("3")]
-position = Vector2(120, 240)
+position = Vector2(400, 270)
 fill_color = Color(0.96, 0.95, 0.92, 1)
 outline_color = Color(0.32, 0.3, 0.26, 1)
 radius = 11.0
 style = "sheep"
 
 [node name="Sheep6" parent="Flock" instance=ExtResource("3")]
-position = Vector2(184, 300)
+position = Vector2(464, 330)
 fill_color = Color(0.96, 0.95, 0.92, 1)
 outline_color = Color(0.32, 0.3, 0.26, 1)
 radius = 11.0
 style = "sheep"
 
 [node name="Player" type="CharacterBody2D" parent="."]
-position = Vector2(250, 270)
+position = Vector2(560, 270)
 script = ExtResource("2")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]

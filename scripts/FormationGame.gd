@@ -5,12 +5,23 @@ signal game_finished(won: bool, score: int)
 const MAX_HP := 5
 const ATTACK_COOLDOWN := 0.35
 const ATTACK_RANGE := 50.0
-const FORMATION_RADIUS := 170.0
+const FORMATION_RADIUS := 150.0
+const COMMANDER_SPEED := 42.0
+const RALLY := [Vector2(250, 270), Vector2(520, 270)]
+const SLOTS := [Vector2(34, -80), Vector2(34, 80), Vector2(78, -38), Vector2(78, 38)]
+const VOLLEY_EVERY := 1.3
+const ARROW_SPEED := 500.0
 
 var hp: int = MAX_HP
 var attack_cooldown_timer: float = 0.0
 var finished: bool = false
 var _mouse_was_pressed: bool = false
+var rally_idx: int = 0
+var out_time: float = 0.0
+var volley_t: float = 0.0
+var arrows: Array = []   # {p, v}
+var arrow_layer: Node2D
+var hurt_cd: float = 0.0
 
 @onready var player: CharacterBody2D = $Player
 @onready var camera: Camera2D = $Player/Camera2D
@@ -34,6 +45,16 @@ func _ready() -> void:
 	hp_bar.max_value = MAX_HP
 	_update_hp_display()
 
+	var i := 0
+	for ally in allies_container.get_children():
+		ally.commander = commander
+		ally.slot_offset = SLOTS[i % SLOTS.size()]
+		i += 1
+	arrow_layer = Node2D.new()
+	arrow_layer.z_index = 20
+	arrow_layer.draw.connect(_draw_arrows)
+	add_child(arrow_layer)
+
 	wave_spawner.enemy_scene = preload("res://scenes/Enemy.tscn")
 	wave_spawner.mode = "fixed"
 	wave_spawner.phases = [
@@ -54,6 +75,7 @@ func _on_enemy_spawned(enemy: Node) -> void:
 func _on_wave_cleared(_wave_index: int) -> void:
 	if not finished:
 		order_label.text = wave_spawner.current_wave_name()
+		rally_idx = mini(rally_idx + 1, RALLY.size() - 1)
 
 
 func _physics_process(delta: float) -> void:
@@ -61,6 +83,7 @@ func _physics_process(delta: float) -> void:
 		return
 
 	attack_cooldown_timer = max(0.0, attack_cooldown_timer - delta)
+	hurt_cd = maxf(0.0, hurt_cd - delta)
 	if Touch.active:
 		if Touch.aim_held:
 			_try_attack()
@@ -73,16 +96,30 @@ func _physics_process(delta: float) -> void:
 
 	weapon.set_aim(player.last_direction.angle())
 
+	# the captain marches the line forward; the formation moves with him
+	var rally: Vector2 = RALLY[rally_idx]
+	commander.position = commander.position.move_toward(rally, COMMANDER_SPEED * delta)
+
 	var in_formation: bool = player.global_position.distance_to(commander.global_position) <= FORMATION_RADIUS
 	for ally in allies_container.get_children():
 		if ally.has_method("set_buffed"):
 			ally.set_buffed(in_formation)
+
+	# penalty: step out of the line and the enemy archers have a clear shot
 	if in_formation:
-		formation_label.text = "Holding Formation -- your line fights harder"
+		out_time = 0.0
+		formation_label.text = "In formation -- shields cover you, your line fights harder"
 		formation_label.add_theme_color_override("font_color", Color(0.55, 1.0, 0.55, 1))
 	else:
-		formation_label.text = "Out of Formation -- your line is weaker without you"
-		formation_label.add_theme_color_override("font_color", Color(1.0, 0.7, 0.3, 1))
+		out_time += delta
+		formation_label.text = "OUT OF FORMATION -- archers have a clear shot at you!"
+		formation_label.add_theme_color_override("font_color", Color(1.0, 0.45, 0.3, 1))
+		if out_time > 0.7:
+			volley_t -= delta
+			if volley_t <= 0.0:
+				volley_t = VOLLEY_EVERY
+				_fire_volley()
+	_update_arrows(delta, in_formation)
 
 
 func _try_attack() -> void:
@@ -92,7 +129,7 @@ func _try_attack() -> void:
 	var facing: Vector2 = player.last_direction
 	var hit_any := false
 	for e in enemies_container.get_children():
-		if not is_instance_valid(e):
+		if not is_instance_valid(e) or not e.is_in_group("enemy"):
 			continue
 		var to_e: Vector2 = e.global_position - player.global_position
 		if to_e.length() <= ATTACK_RANGE and facing.dot(to_e.normalized()) > 0.3:
@@ -104,9 +141,42 @@ func _try_attack() -> void:
 		Fx.hit_stop(0.04)
 
 
+func _fire_volley() -> void:
+	for k in range(2):
+		var src := Vector2(1000.0, player.global_position.y + randf_range(-160, 160))
+		var aim: Vector2 = player.global_position + player.velocity * 0.35 + Vector2(randf_range(-40, 40), randf_range(-40, 40))
+		arrows.append({"p": src, "v": (aim - src).normalized() * ARROW_SPEED})
+
+
+func _update_arrows(delta: float, in_formation: bool) -> void:
+	var keep: Array = []
+	for a in arrows:
+		a["p"] += a["v"] * delta
+		if a["p"].distance_to(player.global_position) < 16.0:
+			if in_formation:
+				Fx.spawn_hit_burst(self, a["p"], Color(0.8, 0.8, 0.85, 1), 6)  # caught on a shield
+			else:
+				_on_player_hit(1, a["p"])
+			continue
+		if a["p"].x < -40.0 or a["p"].y < -40.0 or a["p"].y > 580.0:
+			continue
+		keep.append(a)
+	arrows = keep
+	arrow_layer.queue_redraw()
+
+
+func _draw_arrows() -> void:
+	for a in arrows:
+		var d: Vector2 = (a["v"] as Vector2).normalized()
+		var tip: Vector2 = a["p"]
+		arrow_layer.draw_line(tip - d * 22.0, tip, Color(0.45, 0.3, 0.15, 1), 2.5)
+		arrow_layer.draw_colored_polygon(PackedVector2Array([tip + d * 6.0, tip - d * 2.0 + Vector2(-d.y, d.x) * 4.0, tip - d * 2.0 - Vector2(-d.y, d.x) * 4.0]), Color(0.9, 0.9, 0.95, 1))
+
+
 func _on_player_hit(amount: int, from_pos: Vector2) -> void:
-	if finished:
+	if finished or hurt_cd > 0.0:
 		return
+	hurt_cd = 0.5
 	hp -= amount
 	_update_hp_display()
 	camera.shake(0.8)

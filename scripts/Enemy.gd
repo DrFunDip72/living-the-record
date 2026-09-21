@@ -77,7 +77,9 @@ func take_damage(amount: int, from_pos: Vector2) -> void:
 	hp -= amount
 	knockback = (global_position - from_pos).normalized() * 220.0
 	visual.flash_white()
-	Fx.spawn_hit_burst(get_parent(), global_position, Color(0.85, 0.2, 0.2, 1), 10)
+	# sparks go to the game root, never into the enemy container other code loops over
+	var fx_parent: Node = get_parent().get_parent() if get_parent() and get_parent().get_parent() else get_parent()
+	Fx.spawn_hit_burst(fx_parent, global_position, Color(0.85, 0.2, 0.2, 1), 10)
 	if winding_up:
 		winding_up = false
 		visual.set_colors(_base_fill, _base_outline)

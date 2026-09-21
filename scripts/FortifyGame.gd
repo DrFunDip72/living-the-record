@@ -15,14 +15,25 @@ const UNIT_TYPES := {
 
 const UNIT_ORDER := ["sword", "spear", "shield", "archer", "captain"]
 
-var gold: float = 130.0
+var gold: float = 120.0
 var income: float = 11.0
 var income_level: int = 1
 var armor_level: int = 1
 var kills: int = 0
 var finished: bool = false
 var enemy_timer: float = 5.0
+var enemy_gold: float = 40.0
+var enemy_next: String = "sword"
 var elapsed: float = 0.0
+var assault_t: float = 45.0
+var assault_n: int = 0
+var banner_t: float = 0.0
+var defend_t: float = 0.0
+var garrison: int = 8
+var garrison_t: float = 25.0
+var fort_upgrade_t: float = 75.0
+const MAX_INCOME_LEVEL := 5
+const ASSAULTS := ["Zerahemnah's host", "Amalickiah's captains", "Ammoron's army", "Jacob's Zoramites", "Coriantumr's march"]
 
 @onready var units_root: Node2D = $Units
 @onready var arrows_root: Node2D = $Arrows
@@ -45,6 +56,9 @@ func _ready() -> void:
 	player_fort.arrows_root = arrows_root
 	player_fort.destroyed.connect(_on_fort_destroyed)
 	enemy_fort.team = 1
+	enemy_fort.crossbow_level = 1
+	player_fort.max_hp = 200.0
+	player_fort.hp = 200.0
 	enemy_fort.arrows_root = arrows_root
 	enemy_fort.destroyed.connect(_on_fort_destroyed)
 	player_hp_bar.max_value = player_fort.max_hp
@@ -61,7 +75,7 @@ func _ready() -> void:
 		unit_buttons[key] = b
 
 	_add_upgrade("crossbow", "Crossbow", 80)
-	_add_upgrade("income", "Income", 70)
+	_add_upgrade("income", "Income", 80)
 	_add_upgrade("armor", "Fort Walls", 90)
 	_update_hud()
 
@@ -86,6 +100,8 @@ func _upgrade_cost(key: String) -> int:
 			lvl = income_level
 		"armor":
 			lvl = armor_level
+	if key == "income":
+		return int(upgrade_buttons[key].get_meta("cost")) * int(pow(2, lvl - 1))
 	return int(upgrade_buttons[key].get_meta("cost")) * lvl
 
 
@@ -102,10 +118,44 @@ func _process(delta: float) -> void:
 				if is_instance_valid(other) and other.team == u.team and absf(other.position.x - u.position.x) < 90.0:
 					other.apply_buff(1.3)
 
-	enemy_timer -= delta
-	if enemy_timer <= 0.0:
-		_enemy_spawn()
-		enemy_timer = maxf(1.7, 4.6 - elapsed * 0.014)
+	# the enemy's war chest grows with yours -- out-earning them also arms them
+	enemy_gold += (income * 1.0 + 6.0 + elapsed * 0.03) * delta
+	var next_cost: float = float(UNIT_TYPES[enemy_next]["cost"])
+	if enemy_gold >= next_cost:
+		enemy_gold -= next_cost
+		_spawn_unit(1, enemy_next, enemy_fort.position.x - 46.0)
+		enemy_next = _enemy_pick()
+
+	# their garrison sallies out when you reach their walls
+	defend_t -= delta
+	if defend_t <= 0.0:
+		for u in units_root.get_children():
+			if is_instance_valid(u) and not u.dead and u.team == 0 and absf(u.position.x - enemy_fort.position.x) < 260.0:
+				if garrison > 0:
+					garrison -= 1
+					_enemy_spawn()
+				defend_t = 1.2
+				break
+	garrison_t -= delta
+	if garrison_t <= 0.0:
+		garrison_t = 25.0
+		garrison = mini(garrison + 1, 8)
+	fort_upgrade_t -= delta
+	if fort_upgrade_t <= 0.0:
+		fort_upgrade_t = 75.0
+		enemy_fort.crossbow_level = mini(enemy_fort.crossbow_level + 1, 4)
+
+	assault_t -= delta
+	if assault_t <= 0.0:
+		assault_t = 40.0
+		var n: int = 1 + assault_n
+		for i in range(n):
+			get_tree().create_timer(i * 0.45).timeout.connect(_enemy_spawn)
+		stat_label.text = "ASSAULT: %s!" % ASSAULTS[assault_n % ASSAULTS.size()]
+		banner_t = 3.0
+		assault_n += 1
+	if banner_t > 0.0:
+		banner_t -= delta
 
 	_update_hud()
 
@@ -124,6 +174,8 @@ func _on_train(key: String) -> void:
 func _on_upgrade(key: String) -> void:
 	if finished:
 		return
+	if key == "income" and income_level >= MAX_INCOME_LEVEL:
+		return
 	var cost := _upgrade_cost(key)
 	if gold < float(cost):
 		return
@@ -133,7 +185,7 @@ func _on_upgrade(key: String) -> void:
 			player_fort.crossbow_level += 1
 		"income":
 			income_level += 1
-			income += 6.0
+			income += 5.0
 		"armor":
 			armor_level += 1
 			player_fort.max_hp += 45.0
@@ -142,14 +194,27 @@ func _on_upgrade(key: String) -> void:
 	_update_hud()
 
 
-func _enemy_spawn() -> void:
+func _enemy_pick() -> String:
 	var pool := ["sword", "sword", "spear"]
-	if elapsed > 40.0:
+	if elapsed > 30.0:
 		pool.append("archer")
 		pool.append("shield")
-	if elapsed > 85.0:
+	if elapsed > 70.0:
 		pool.append("captain")
 		pool.append("spear")
+		pool.append("archer")
+	return pool[randi() % pool.size()]
+
+
+func _enemy_spawn() -> void:
+	var pool := ["sword", "sword", "spear"]
+	if elapsed > 30.0:
+		pool.append("archer")
+		pool.append("shield")
+	if elapsed > 70.0:
+		pool.append("captain")
+		pool.append("spear")
+		pool.append("archer")
 	var key: String = pool[randi() % pool.size()]
 	_spawn_unit(1, key, enemy_fort.position.x - 46.0)
 
@@ -161,7 +226,7 @@ func _spawn_unit(team: int, key: String, x: float) -> void:
 	units_root.add_child(u)
 	var tuned := info.duplicate()
 	if team == 1:
-		var ramp: float = clampf(0.78 + elapsed * 0.0035, 0.78, 1.0)
+		var ramp: float = clampf(0.85 + elapsed * 0.0018, 0.85, 1.25)
 		tuned["hp"] = info["hp"] * ramp
 		tuned["dmg"] = info["dmg"] * ramp
 	u.configure(team, key, tuned)
@@ -175,7 +240,7 @@ func _on_unit_died(unit: Node) -> void:
 		return
 	if unit.team == 1:
 		kills += 1
-		gold += 12.0
+		gold += 11.0
 	_update_hud()
 
 
@@ -187,9 +252,10 @@ func _on_fort_destroyed(team: int) -> void:
 
 func _update_hud() -> void:
 	gold_label.text = "Gold: %d" % int(gold)
-	stat_label.text = "Income %d/s    Crossbow Lv%d    Walls Lv%d    Kills %d" % [
-		int(income), player_fort.crossbow_level, armor_level, kills
-	]
+	if banner_t <= 0.0:
+		stat_label.text = "Income %d/s    Crossbow Lv%d    Walls Lv%d    Kills %d" % [
+			int(income), player_fort.crossbow_level, armor_level, kills
+		]
 	player_hp_bar.value = player_fort.hp
 	enemy_hp_bar.value = enemy_fort.hp
 
@@ -199,8 +265,12 @@ func _update_hud() -> void:
 	for key in upgrade_buttons:
 		var ub: Button = upgrade_buttons[key]
 		var cost := _upgrade_cost(key)
-		ub.text = "%s  %d g" % [ub.get_meta("label"), cost]
-		ub.disabled = gold < float(cost)
+		if key == "income" and income_level >= MAX_INCOME_LEVEL:
+			ub.text = "Income  MAX"
+			ub.disabled = true
+		else:
+			ub.text = "%s  %d g" % [ub.get_meta("label"), cost]
+			ub.disabled = gold < float(cost)
 
 
 func _finish(won: bool) -> void:

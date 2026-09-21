@@ -10,7 +10,8 @@ const HUNGER_DRAIN := 3.4
 const HUNGER_PER_KILL := 32.0
 const DRAW_TIME := 0.85
 const MIN_POWER := 0.3
-const BOW_ANCHOR := Vector2(480, 466)
+const NEAR_Y := 432.0
+const FAR_Y := 250.0
 
 var hunger: float = MAX_HUNGER
 var score: int = 0
@@ -41,7 +42,10 @@ var _t: float = 0.0
 func _ready() -> void:
 	randomize()
 	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
-	bow.position = BOW_ANCHOR
+	bow.position = Vector2.ZERO
+	bow.scale = Vector2.ONE
+	reticle.get_node("Cross").visible = false
+	reticle.draw.connect(_draw_reticle)
 	hunger_bar.max_value = MAX_HUNGER
 	msg_label.text = ""
 	_update_hud()
@@ -68,10 +72,13 @@ func _process(delta: float) -> void:
 	if Touch.is_touch():
 		mouse += Vector2(0, -90)  # keep the sight visible above your thumb
 	aim_pos = aim_pos.lerp(mouse, 1.0 - exp(-7.0 * delta))
-	var sway_amp: float = 2.0 + hold_time * 9.0
+	# steady while you draw; hold at full draw too long and your arm starts to shake
+	var sway_amp: float = minf(1.5 + maxf(hold_time - DRAW_TIME, 0.0) * 16.0, 34.0)
 	var sway := Vector2(sin(_t * 1.9) * sway_amp, cos(_t * 2.7) * sway_amp * 0.7)
 	var final_aim: Vector2 = aim_pos + sway
 	reticle.position = final_aim
+	reticle_state = _reticle_over(final_aim)
+	reticle.queue_redraw()
 
 	# --- draw / release ---
 	var pressed := Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
@@ -86,9 +93,7 @@ func _process(delta: float) -> void:
 		_release(final_aim)
 	_mouse_was_pressed = pressed
 
-	var aim_dir: Vector2 = (final_aim - BOW_ANCHOR).normalized()
-	bow.rotation = aim_dir.angle()
-	bow.set_state(draw_power, true)
+	bow.set_state(draw_power, final_aim)
 	power_bar.value = draw_power * 100.0
 	power_bar.visible = drawing
 
@@ -111,12 +116,13 @@ func _release(target: Vector2) -> void:
 	var power: float = maxf(draw_power, MIN_POWER)
 	draw_power = 0.0
 	hold_time = 0.0
-	var dir: Vector2 = (target - BOW_ANCHOR).normalized()
+	# the arrow lands where the sight was; farther game and a weak draw mean a longer flight
+	var far: float = clampf((NEAR_Y - target.y) / (NEAR_Y - FAR_Y), 0.0, 1.0)
+	var flight: float = lerpf(0.55, 0.26, power) * (0.75 + far * 0.6)
 	var arrow := ARROW_SCENE.instantiate()
-	arrow.position = BOW_ANCHOR + dir * 40.0
 	arrow.resolved.connect(_on_arrow_resolved)
-	arrow.launch(dir, power)
 	arrows_root.add_child(arrow)
+	arrow.launch(bow.tip(), target, flight, lerpf(0.75, 0.32, far))
 
 
 func _on_arrow_resolved(kind: String, pos: Vector2, points: int) -> void:
@@ -156,6 +162,30 @@ func _spawn_animal() -> void:
 		_say("It got away.")
 	)
 	animal = a
+
+
+var reticle_state: String = ""
+
+func _reticle_over(p: Vector2) -> String:
+	if animal != null and is_instance_valid(animal):
+		return animal.hit_test(p)
+	return ""
+
+
+func _draw_reticle() -> void:
+	var col := Color(1, 1, 1, 0.9)
+	if reticle_state == "vital":
+		col = Color(1, 0.85, 0.2, 1)
+	elif reticle_state == "body":
+		col = Color(1, 0.45, 0.35, 1)
+	var r: float = 13.0 - draw_power * 5.0
+	var ink := Color(0, 0, 0, 0.55)
+	reticle.draw_arc(Vector2.ZERO, r, 0.0, TAU, 28, ink, 4.0)
+	reticle.draw_arc(Vector2.ZERO, r, 0.0, TAU, 28, col, 2.0)
+	for d in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
+		reticle.draw_line(d * (r + 3.0), d * (r + 10.0), ink, 4.0)
+		reticle.draw_line(d * (r + 3.0), d * (r + 10.0), col, 2.0)
+	reticle.draw_circle(Vector2.ZERO, 2.0, col)
 
 
 func _say(text: String) -> void:

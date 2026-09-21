@@ -11,8 +11,8 @@ const BLOOD := Color(0.62, 0.08, 0.06, 1)
 # down-range perspective band
 const NEAR_Y := 432.0
 const FAR_Y := 250.0
-const NEAR_SCALE := 1.15
-const FAR_SCALE := 0.34
+const NEAR_SCALE := 1.2
+const FAR_SCALE := 0.5
 
 var st: int = St.GRAZE
 var facing: int = 1
@@ -28,6 +28,7 @@ var wounded: bool = false
 var bleed_timer: float = 0.0
 var bleed_life: float = 9.0
 var drops: Array = []
+var spotted_t: float = 2.6   # a marker points out new game
 
 
 func _ready() -> void:
@@ -44,7 +45,7 @@ func setup(p_depth: float) -> void:
 	flee_speed = lerpf(240.0, 110.0, depth)
 	facing = 1 if randf() < 0.5 else -1
 	position.x = randf_range(220.0, 740.0)
-	coat = Color(0.46, 0.31, 0.18, 1).lerp(Color(0.55, 0.43, 0.3, 1), depth)
+	coat = Color(0.66, 0.41, 0.2, 1).lerp(Color(0.74, 0.54, 0.33, 1), depth)
 	queue_redraw()
 
 
@@ -55,6 +56,7 @@ func current_scale() -> float:
 func _process(delta: float) -> void:
 	bob += delta
 	state_timer -= delta
+	spotted_t = maxf(spotted_t - delta, 0.0)
 
 	if wounded and st != St.DYING:
 		bleed_timer -= delta
@@ -205,3 +207,15 @@ func _draw() -> void:
 		draw_line(Vector2(40 * f, head_y + 6), Vector2(44 * f, head_y - 10), INK, 3.0)
 
 	draw_line(Vector2(-31 * f, -6 + lift), Vector2(-38 * f, -14 + lift), INK, 4.0)
+	# pale rump patch -- easy to pick out against the brush
+	draw_circle(Vector2(-27 * f, -4 + lift), 5.0, Color(0.95, 0.9, 0.8, 1))
+
+	# "there!" marker when an animal first appears, sized to stay readable at any distance
+	if spotted_t > 0.0 and st != St.DYING:
+		var k: float = 1.0 / maxf(scale.x, 0.3)
+		var a: float = clampf(spotted_t, 0.0, 1.0)
+		var y: float = -70.0 * k * 0.7 - 60.0 + sin(bob * 6.0) * 5.0 * k
+		var c := Color(1, 0.85, 0.25, a)
+		draw_colored_polygon(PackedVector2Array([
+			Vector2(0, y + 12.0 * k), Vector2(-10.0 * k, y), Vector2(10.0 * k, y)]), c)
+		draw_line(Vector2(0, y - 3.0 * k), Vector2(0, y - 14.0 * k), c, 3.0 * k)

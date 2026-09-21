@@ -24,11 +24,20 @@ var swing: float = 0.0
 var phase: float = 0.0
 var selected: bool = false
 var arrows_root: Node = null
-var aggressive: bool = false     # ordered to charge: seek enemies anywhere
-var guard_radius: float = 0.0    # >0: defend this spot, chase intruders
+var aggressive: bool = false     # enemy only: seek targets far and wide
+var guard_radius: float = 0.0    # enemy only: defend this spot, chase intruders
 var damage_taken_mult: float = 1.0  # <1 while behind city walls
 
-const AMBUSH_RANGE := 115.0
+# player companies only move on orders
+var company: int = -1
+var order: String = "hold"       # hold | move | attack
+var home: Vector2 = Vector2.ZERO
+var ambush_run: float = 0.0
+var forests: Array = []          # cover a halted company can hide in
+
+const HOLD_REACH := 14.0         # how far past weapon reach a holding man will strike
+const HOLD_LEASH := 26.0         # how far a holding man will step off his spot
+const SEEN_WHEN_HIDDEN := 40.0   # the enemy only notices hidden men this close
 
 
 func configure(p_team: int, p_kind: String, stats: Dictionary) -> void:
@@ -41,6 +50,7 @@ func configure(p_team: int, p_kind: String, stats: Dictionary) -> void:
 	attack_cd = stats["atk"]
 	speed = stats["spd"]
 	phase = randf() * TAU
+	home = position
 	add_to_group("war_unit")
 	add_to_group("war_team_%d" % team)
 
@@ -48,12 +58,25 @@ func configure(p_team: int, p_kind: String, stats: Dictionary) -> void:
 func set_concealed(v: bool) -> void:
 	concealed = v
 	ambush_ready = v
+	ambush_run = 0.0
 	queue_redraw()
 
 
 func order_move(p: Vector2) -> void:
 	move_target = p
 	path_points = []
+	if team == 0:
+		order = "move"
+		# a marching company is out in the open
+		if concealed:
+			concealed = false
+			queue_redraw()
+
+
+func order_hold() -> void:
+	order = "hold"
+	move_target = null
+	home = position
 
 
 func set_patrol(points: Array) -> void:
@@ -70,23 +93,57 @@ func _process(delta: float) -> void:
 	flash = maxf(0.0, flash - delta * 5.0)
 	phase += delta
 
-	var target = _find_target()
+	if team == 0:
+		_follow_orders(delta)
+	else:
+		_enemy_think(delta)
+	queue_redraw()
 
-	if target != null:
-		if concealed:
-			spring()
-		var to: Vector2 = target.global_position - global_position
-		if to.length() > attack_range:
-			position += to.normalized() * speed * delta
-		elif cd <= 0.0:
-			cd = attack_cd
-			swing = 1.0
-			var dmg: float = damage * (2.0 if ambush_ready else 1.0)
-			ambush_ready = false
-			if kind == "archer" and arrows_root != null:
-				_shoot(target, dmg)
+
+# --- player men: nothing happens without an order ---------------------------
+
+func _follow_orders(delta: float) -> void:
+	match order:
+		"move":
+			# a marching company does not stop to fight
+			if move_target == null:
+				order_hold()
+				return
+			var to: Vector2 = move_target - global_position
+			if to.length() < 6.0:
+				position = move_target
+				order_hold()
+				for f in forests:
+					if (f as Rect2).has_point(position):
+						set_concealed(true)
+						break
 			else:
-				target.take_hit(dmg)
+				position += to.normalized() * speed * delta
+		"attack":
+			var t = _nearest_foe(INF)
+			if t != null:
+				_close_and_strike(t, delta)
+		_:
+			# hold: hidden men stay silent; visible men defend their spot
+			if concealed:
+				return
+			var t2 = _nearest_foe(attack_range + HOLD_REACH + HOLD_LEASH)
+			if t2 != null:
+				var d: float = global_position.distance_to(t2.global_position)
+				if d <= attack_range:
+					_strike(t2)
+				elif global_position.distance_to(home) < HOLD_LEASH:
+					position += (t2.global_position - global_position).normalized() * speed * delta
+			elif global_position.distance_to(home) > 3.0:
+				position += (home - global_position).normalized() * speed * 0.6 * delta
+
+
+# --- enemies: march their route, fight what they notice ----------------------
+
+func _enemy_think(delta: float) -> void:
+	var target = _find_target()
+	if target != null:
+		_close_and_strike(target, delta)
 	elif move_target != null:
 		var to2: Vector2 = move_target - global_position
 		if to2.length() < 8.0:
@@ -97,33 +154,75 @@ func _process(delta: float) -> void:
 		else:
 			position += to2.normalized() * speed * delta
 
-	queue_redraw()
+
+func _close_and_strike(target, delta: float) -> void:
+	var to: Vector2 = target.global_position - global_position
+	if to.length() > attack_range:
+		position += to.normalized() * speed * delta
+		# surprise only works up close -- a long run gives the enemy time to form up
+		if ambush_ready and team == 0:
+			ambush_run += speed * delta
+			if ambush_run > 110.0:
+				ambush_ready = false
+	else:
+		_strike(target)
+
+
+func _strike(target) -> void:
+	if cd > 0.0:
+		return
+	if concealed:
+		spring()
+	cd = attack_cd
+	swing = 1.0
+	var dmg: float = damage * (2.0 if ambush_ready else 1.0)
+	ambush_ready = false
+	if kind == "archer" and arrows_root != null:
+		_shoot(target, dmg)
+	else:
+		target.take_hit(dmg)
 
 
 func spring() -> void:
 	if not concealed:
 		return
-	set_concealed(false)
+	concealed = false
 	ambush_ready = true
-	aggressive = true
-	# the rest of the hidden company springs with you
+	queue_redraw()
+	if team == 1:
+		aggressive = true
+	# the rest of the hidden company is revealed with you
 	for u in get_tree().get_nodes_in_group("war_team_%d" % team):
-		if is_instance_valid(u) and u != self and u.concealed and u.global_position.distance_to(global_position) < 170.0:
+		if not is_instance_valid(u) or u == self or not u.concealed:
+			continue
+		if (team == 0 and u.company == company) or (team == 1 and u.global_position.distance_to(global_position) < 170.0):
 			u.spring()
 
 
 func charge() -> void:
-	aggressive = true
+	order = "attack"
+	move_target = null
 	if concealed:
 		spring()
+
+
+func _nearest_foe(max_d: float):
+	var best = null
+	var best_d: float = max_d
+	for u in get_tree().get_nodes_in_group("war_unit"):
+		if not is_instance_valid(u) or u.dead or u.team == team:
+			continue
+		var d: float = global_position.distance_to(u.global_position)
+		if d < best_d:
+			best_d = d
+			best = u
+	return best
 
 
 func _find_target():
 	var best = null
 	var best_d: float = attack_range * 3.2
-	if concealed:
-		best_d = maxf(AMBUSH_RANGE, attack_range)
-	elif aggressive:
+	if aggressive:
 		best_d = 420.0
 	elif guard_radius > 0.0:
 		best_d = guard_radius
@@ -131,6 +230,9 @@ func _find_target():
 		if not is_instance_valid(u) or u.dead or u.team == team:
 			continue
 		var d: float = global_position.distance_to(u.global_position)
+		# men hidden in the trees go unnoticed unless you walk right into them
+		if u.concealed and d > SEEN_WHEN_HIDDEN:
+			continue
 		if d < best_d:
 			best_d = d
 			best = u
@@ -156,11 +258,12 @@ func take_hit(amount: float) -> void:
 	flash = 1.0
 	if concealed:
 		spring()
-	if not aggressive:
+	# your men fight back where they stand; only the enemy rushes in when struck
+	if team == 1 and not aggressive:
 		aggressive = true
 		path_points = []
 		move_target = null
-		for u in get_tree().get_nodes_in_group("war_team_%d" % team):
+		for u in get_tree().get_nodes_in_group("war_team_1"):
 			if is_instance_valid(u) and u != self and not u.concealed and u.global_position.distance_to(global_position) < 220.0:
 				u.aggressive = true
 				u.path_points = []

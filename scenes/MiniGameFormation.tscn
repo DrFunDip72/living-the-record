@@ -33,7 +33,7 @@ color = Color(1, 1, 1, 1)
 [node name="AlliesContainer" type="Node2D" parent="."]
 
 [node name="Ally1" type="Node2D" parent="AlliesContainer"]
-position = Vector2(120, 180)
+position = Vector2(204, 190)
 script = ExtResource("2")
 
 [node name="Visual" parent="AlliesContainer/Ally1" instance=ExtResource("4")]
@@ -47,7 +47,7 @@ kind = "sword"
 reach = 24.0
 
 [node name="Ally2" type="Node2D" parent="AlliesContainer"]
-position = Vector2(170, 130)
+position = Vector2(204, 350)
 script = ExtResource("2")
 
 [node name="Visual" parent="AlliesContainer/Ally2" instance=ExtResource("4")]
@@ -61,7 +61,7 @@ kind = "sword"
 reach = 24.0
 
 [node name="Ally3" type="Node2D" parent="AlliesContainer"]
-position = Vector2(110, 340)
+position = Vector2(248, 232)
 script = ExtResource("2")
 
 [node name="Visual" parent="AlliesContainer/Ally3" instance=ExtResource("4")]
@@ -75,7 +75,7 @@ kind = "sword"
 reach = 24.0
 
 [node name="Ally4" type="Node2D" parent="AlliesContainer"]
-position = Vector2(170, 400)
+position = Vector2(248, 308)
 script = ExtResource("2")
 
 [node name="Visual" parent="AlliesContainer/Ally4" instance=ExtResource("4")]
@@ -89,7 +89,16 @@ kind = "sword"
 reach = 24.0
 
 [node name="Commander" type="Node2D" parent="."]
-position = Vector2(80, 270)
+position = Vector2(170, 270)
+
+[node name="Pole" type="Line2D" parent="Commander"]
+points = PackedVector2Array(-14, 10, -14, -46)
+width = 3.0
+default_color = Color(0.25, 0.17, 0.1, 1)
+
+[node name="Banner" type="Polygon2D" parent="Commander"]
+polygon = PackedVector2Array(-13, -46, 14, -41, 6, -33, 14, -25, -13, -28)
+color = Color(0.92, 0.9, 0.82, 1)
 
 [node name="Visual" parent="Commander" instance=ExtResource("4")]
 fill_color = Color(0.88, 0.88, 0.92, 1)

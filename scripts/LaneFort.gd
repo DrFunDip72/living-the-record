@@ -31,7 +31,7 @@ func _process(delta: float) -> void:
 	if cd <= 0.0:
 		var target = _find_target()
 		if target != null:
-			cd = maxf(0.35, 1.5 - crossbow_level * 0.22)
+			cd = maxf(0.4, 1.2 - crossbow_level * 0.18)
 			_shoot(target)
 	queue_redraw()
 
@@ -54,14 +54,14 @@ func _shoot(target) -> void:
 		return
 	var arrow := preload("res://scenes/LaneArrow.tscn").instantiate()
 	arrow.position = position + Vector2(dir() * 12.0, -86.0)
-	arrow.setup(team, 4.0 + crossbow_level * 3.0, target.position + Vector2(0, -22.0))
+	arrow.setup(team, 6.0 + crossbow_level * 4.0, target.position + Vector2(0, -22.0))
 	arrows_root.add_child(arrow)
 
 
 func take_hit(amount: float) -> void:
 	if dead:
 		return
-	hp -= amount
+	hp -= amount * 0.35   # stone walls shrug off most blows
 	flash = 1.0
 	if hp <= 0.0:
 		hp = 0.0
