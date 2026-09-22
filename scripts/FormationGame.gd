@@ -6,11 +6,31 @@ const MAX_HP := 5
 const ATTACK_COOLDOWN := 0.35
 const ATTACK_RANGE := 50.0
 const FORMATION_RADIUS := 150.0
-const COMMANDER_SPEED := 42.0
-const RALLY := [Vector2(250, 270), Vector2(520, 270)]
+const COMMANDER_SPEED := 60.0
 const SLOTS := [Vector2(34, -80), Vector2(34, 80), Vector2(78, -38), Vector2(78, 38)]
 const VOLLEY_EVERY := 1.3
 const ARROW_SPEED := 500.0
+const WORLD_W := 2200.0
+const RALLY_START := 250.0
+const RALLY_STEP := 235.0
+
+# enemy kinds -- tuned before they enter the tree
+const SWORD := {}
+const RUNNER := {"speed": 108.0, "max_hp": 1, "windup_time": 0.25, "fill": Color(0.95, 0.55, 0.2, 1), "scale": Vector2(0.85, 0.85)}
+const BRUTE := {"speed": 40.0, "max_hp": 4, "windup_time": 0.5, "fill": Color(0.55, 0.12, 0.12, 1), "scale": Vector2(1.35, 1.35)}
+const CAPTAIN := {"speed": 48.0, "max_hp": 8, "windup_time": 0.45, "contact_damage": 2, "fill": Color(0.45, 0.1, 0.35, 1), "scale": Vector2(1.6, 1.6)}
+
+# the march of Helaman's two thousand (Alma 56-57), one wave per rally point
+const WAVES := [
+	{"name": "HOLD THE LINE!", "groups": [["front", SWORD, 3]]},
+	{"name": "THEY PRESS AGAIN!", "groups": [["front", SWORD, 4]]},
+	{"name": "THE NORTH FLANK!", "groups": [["north", SWORD, 3], ["front", SWORD, 2]]},
+	{"name": "TURN BACK -- THEY ARE ON ANTIPUS!", "groups": [["rear", SWORD, 4]]},
+	{"name": "THEIR STRONGEST MEN", "groups": [["front", BRUTE, 2], ["front", SWORD, 2]]},
+	{"name": "SKIRMISHERS ON BOTH SIDES!", "groups": [["north", RUNNER, 3], ["south", RUNNER, 3]]},
+	{"name": "SURROUNDED -- STAND FIRM!", "groups": [["front", SWORD, 4], ["north", BRUTE, 1], ["north", SWORD, 2], ["south", SWORD, 3], ["rear", RUNNER, 3]]},
+	{"name": "THE LAST CHARGE", "groups": [["front", CAPTAIN, 1], ["front", BRUTE, 3], ["front", SWORD, 4], ["north", RUNNER, 3], ["south", RUNNER, 3]]},
+]
 
 var hp: int = MAX_HP
 var attack_cooldown_timer: float = 0.0
@@ -22,6 +42,8 @@ var volley_t: float = 0.0
 var arrows: Array = []   # {p, v}
 var arrow_layer: Node2D
 var hurt_cd: float = 0.0
+var kills: int = 0
+var waves_cleared: int = 0
 
 @onready var player: CharacterBody2D = $Player
 @onready var camera: Camera2D = $Player/Camera2D
@@ -38,12 +60,17 @@ var hurt_cd: float = 0.0
 
 
 func _ready() -> void:
-	hint_label.text = "WASD to move. The mouse aims your sword. Click to swing."
+	hint_label.text = "WASD to move. The mouse aims your sword. Click to swing. Stay by the banner."
 	Touch.configure({"joystick": true, "aim": true})
 	if Touch.active:
 		hint_label.text = "Left thumb: move.  Right thumb: tap or hold where you want to strike."
 	hp_bar.max_value = MAX_HP
 	_update_hp_display()
+
+	# a long field: the captain marches the line east, wave by wave
+	$Background.size = Vector2(WORLD_W, 540)
+	camera.limit_right = int(WORLD_W)
+	player.bounds = Rect2(20, 20, WORLD_W - 40, 500)
 
 	var i := 0
 	for ally in allies_container.get_children():
@@ -57,25 +84,67 @@ func _ready() -> void:
 
 	wave_spawner.enemy_scene = preload("res://scenes/Enemy.tscn")
 	wave_spawner.mode = "fixed"
-	wave_spawner.phases = [
-		{"name": "HOLD THE LINE!", "count": 3, "spawn_rect": Rect2(680, 120, 220, 320)},
-		{"name": "ADVANCE!", "count": 4, "spawn_rect": Rect2(760, 90, 220, 380)},
-	]
+	wave_spawner.wave_pause = 2.5
+	var phases: Array = []
+	for w in range(WAVES.size()):
+		var groups: Array = []
+		for g in WAVES[w]["groups"]:
+			groups.append({"spawn_rect": _side_rect(g[0], _rally(w).x), "type": g[1], "count": g[2]})
+		phases.append({"name": WAVES[w]["name"], "groups": groups})
+	wave_spawner.phases = phases
 	wave_spawner.wave_cleared.connect(_on_wave_cleared)
-	wave_spawner.all_waves_cleared.connect(func(): _finish(true))
+	wave_spawner.all_waves_cleared.connect(_on_all_cleared)
 	wave_spawner.enemy_spawned.connect(_on_enemy_spawned)
 	wave_spawner.start(enemies_container, player)
-	order_label.text = wave_spawner.current_wave_name()
+	_show_wave_name()
+
+
+func _rally(idx: int) -> Vector2:
+	return Vector2(RALLY_START + idx * RALLY_STEP, 270)
+
+
+func _side_rect(side: String, rx: float) -> Rect2:
+	match side:
+		"north":
+			return Rect2(rx + 40, 16, 260, 24)
+		"south":
+			return Rect2(rx + 40, 500, 260, 24)
+		"rear":
+			return Rect2(maxf(rx - 420, 20), 130, 60, 280)
+		_:
+			return Rect2(minf(rx + 380, WORLD_W - 180), 110, 160, 320)
+
+
+func _show_wave_name() -> void:
+	var w: int = mini(waves_cleared, WAVES.size() - 1)
+	order_label.text = "WAVE %d/%d -- %s" % [w + 1, WAVES.size(), WAVES[w]["name"]]
 
 
 func _on_enemy_spawned(enemy: Node) -> void:
 	enemy.hit_target.connect(_on_player_hit)
+	enemy.defeated.connect(func(): kills += 1)
 
 
 func _on_wave_cleared(_wave_index: int) -> void:
-	if not finished:
-		order_label.text = wave_spawner.current_wave_name()
-		rally_idx = mini(rally_idx + 1, RALLY.size() - 1)
+	if finished:
+		return
+	waves_cleared += 1
+	if waves_cleared >= WAVES.size():
+		return
+	rally_idx = mini(rally_idx + 1, WAVES.size() - 1)
+	# every other lull, your brothers bind your wounds
+	if hp < MAX_HP and waves_cleared % 2 == 0:
+		hp += 1
+		_update_hp_display()
+		formation_label.text = "Wounds bound. +1"
+	_show_wave_name()
+
+
+func _on_all_cleared() -> void:
+	if finished:
+		return
+	order_label.text = "NOT ONE OF THEM FELL"
+	_finish(true)
 
 
 func _physics_process(delta: float) -> void:
@@ -97,8 +166,7 @@ func _physics_process(delta: float) -> void:
 	weapon.set_aim(player.last_direction.angle())
 
 	# the captain marches the line forward; the formation moves with him
-	var rally: Vector2 = RALLY[rally_idx]
-	commander.position = commander.position.move_toward(rally, COMMANDER_SPEED * delta)
+	commander.position = commander.position.move_toward(_rally(rally_idx), COMMANDER_SPEED * delta)
 
 	var in_formation: bool = player.global_position.distance_to(commander.global_position) <= FORMATION_RADIUS
 	for ally in allies_container.get_children():
@@ -132,7 +200,8 @@ func _try_attack() -> void:
 		if not is_instance_valid(e) or not e.is_in_group("enemy"):
 			continue
 		var to_e: Vector2 = e.global_position - player.global_position
-		if to_e.length() <= ATTACK_RANGE and facing.dot(to_e.normalized()) > 0.3:
+		var reach: float = ATTACK_RANGE + 10.0 * (e.scale.x - 1.0)
+		if to_e.length() <= reach and facing.dot(to_e.normalized()) > 0.3:
 			e.take_damage(1, player.global_position)
 			hit_any = true
 	weapon.swing()
@@ -143,7 +212,7 @@ func _try_attack() -> void:
 
 func _fire_volley() -> void:
 	for k in range(2):
-		var src := Vector2(1000.0, player.global_position.y + randf_range(-160, 160))
+		var src := Vector2(player.global_position.x + 560.0, player.global_position.y + randf_range(-160, 160))
 		var aim: Vector2 = player.global_position + player.velocity * 0.35 + Vector2(randf_range(-40, 40), randf_range(-40, 40))
 		arrows.append({"p": src, "v": (aim - src).normalized() * ARROW_SPEED})
 
@@ -158,7 +227,7 @@ func _update_arrows(delta: float, in_formation: bool) -> void:
 			else:
 				_on_player_hit(1, a["p"])
 			continue
-		if a["p"].x < -40.0 or a["p"].y < -40.0 or a["p"].y > 580.0:
+		if a["p"].x < player.global_position.x - 700.0 or a["p"].y < -40.0 or a["p"].y > 580.0:
 			continue
 		keep.append(a)
 	arrows = keep
@@ -206,12 +275,13 @@ func _update_hp_display() -> void:
 
 func _finish(won: bool) -> void:
 	finished = true
+	var score: int = kills * 10 + waves_cleared * 25 + (maxi(hp, 0) * 20 + 200 if won else 0)
 	var flash := ColorRect.new()
 	flash.color = Color(0.3, 1, 0.3, 0.4) if won else Color(1, 0.2, 0.2, 0.4)
 	flash.anchor_right = 1.0
 	flash.anchor_bottom = 1.0
 	add_child(flash)
-	get_tree().create_timer(0.35).timeout.connect(func(): game_finished.emit(won, -1))
+	get_tree().create_timer(0.6).timeout.connect(func(): game_finished.emit(won, score))
 
 
 func _exit_tree() -> void:

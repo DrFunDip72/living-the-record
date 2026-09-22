@@ -11,7 +11,7 @@ signal enemy_spawned(enemy: Node)
 @export var count_growth: float = 1.15
 @export var wave_pause: float = 2.0
 
-var phases: Array = []  # fixed mode: [{"name": String, "count": int, "spawn_rect": Rect2}]
+var phases: Array = []  # fixed mode: [{"name", "count", "spawn_rect"}] or [{"name", "groups": [{"count", "spawn_rect", "type"}]}]
 var container: Node2D
 var target: Node2D
 
@@ -38,6 +38,11 @@ func _start_wave() -> void:
 			all_waves_cleared.emit()
 			return
 		var p: Dictionary = phases[_current_wave]
+		if p.has("groups"):
+			for g in p["groups"]:
+				for i in range(int(g["count"])):
+					_spawn_one(g["spawn_rect"], g.get("type", {}))
+			return
 		rect = p["spawn_rect"]
 		count = p["count"]
 	else:
@@ -47,8 +52,16 @@ func _start_wave() -> void:
 		_spawn_one(rect)
 
 
-func _spawn_one(rect: Rect2) -> void:
+func _spawn_one(rect: Rect2, type: Dictionary = {}) -> void:
 	var e := enemy_scene.instantiate()
+	# per-type tuning is applied before the enemy enters the tree, so _ready sees it
+	for key in type:
+		if key == "fill" or key == "outline" or key == "radius":
+			var v := e.get_node_or_null("Visual")
+			if v:
+				v.set({"fill": "fill_color", "outline": "outline_color", "radius": "radius"}[key], type[key])
+		else:
+			e.set(key, type[key])
 	e.position = Vector2(
 		randf_range(rect.position.x, rect.position.x + rect.size.x),
 		randf_range(rect.position.y, rect.position.y + rect.size.y)
