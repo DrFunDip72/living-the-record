@@ -20,4 +20,4 @@ func _ready() -> void:
 		else:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	)
-	about_label.text = "These stories were preserved so that we could believe -- not just know about them, but let them change us.\n\n\"...these things are written that we may believe...\"\n\nMade for REL A 275 -- Book of Mormon Project."
+	about_label.text = "Eight moments from the Book of Mormon, each one playable.\n\nThese stories were preserved so that we could believe -- not just know about them, but let them change us. Every game ends with a question worth sitting with.\n\nMade for REL A 275 -- Book of Mormon Project."

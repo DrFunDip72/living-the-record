@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/FormationGame.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/AllyFighter.gd" id="2"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://scripts/common/WaveSpawner.gd" id="6"]
 [ext_resource type="Material" path="res://shaders/BattlefieldMaterial.tres" id="7"]
 [ext_resource type="Script" path="res://scripts/common/Weapon.gd" id="8"]
+[ext_resource type="Script" path="res://scripts/common/FieldDressing.gd" id="9"]
 
 [sub_resource type="CircleShape2D" id="PlayerCircle"]
 radius = 14.0
@@ -30,6 +31,12 @@ offset_right = 960.0
 offset_bottom = 540.0
 material = ExtResource("7")
 color = Color(1, 1, 1, 1)
+
+[node name="GroundDressing" type="Node2D" parent="."]
+position = Vector2(0, 1)
+script = ExtResource("9")
+mode = "ground"
+tint = Color(0.21, 0.3, 0.16, 1)
 
 [node name="AlliesContainer" type="Node2D" parent="."]
 y_sort_enabled = true
@@ -183,3 +190,10 @@ horizontal_alignment = 1
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 16
 text = "5 / 5"
+
+[node name="ForegroundGrass" type="Node2D" parent="."]
+position = Vector2(0, 544)
+script = ExtResource("9")
+mode = "foreground"
+tint = Color(0.21, 0.3, 0.16, 1)
+rng_seed = 23

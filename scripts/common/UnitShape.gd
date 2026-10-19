@@ -4,6 +4,11 @@ extends Node2D
 @export var outline_color: Color = Color(0, 0, 0, 1)
 @export var radius: float = 12.0
 @export var style: String = "figure"  # figure | sheep | diamond | round
+# Units further up the field read as further away. Applied to the drawn radius
+# rather than to scale, so it never fights the pop() tween.
+@export var depth_scale: bool = true
+@export var depth_field_height: float = 540.0
+@export var depth_range: Vector2 = Vector2(0.86, 1.17)
 
 var _flash: float = 0.0
 var _phase: float = 0.0
@@ -45,8 +50,17 @@ func _col() -> Color:
 	return fill_color.lerp(Color(1, 1, 1, 1), _flash)
 
 
+func _depth_mul() -> float:
+	if not depth_scale or depth_field_height <= 0.0:
+		return 1.0
+	if style != "figure" and style != "sheep":
+		return 1.0  # projectiles and pickups keep their size
+	var t: float = clampf(global_position.y / depth_field_height, 0.0, 1.0)
+	return lerpf(depth_range.x, depth_range.y, t)
+
+
 func _draw() -> void:
-	var r := radius
+	var r := radius * _depth_mul()
 	match style:
 		"sheep":
 			_draw_ground_shadow(r, 1.35)
@@ -63,6 +77,23 @@ func _draw() -> void:
 		_:
 			_draw_ground_shadow(r, 1.0)
 			_draw_figure(r)
+	_draw_impact_spikes(r)
+
+
+# Short white spikes thrown out at the instant of a hit. They fade with the
+# same _flash value that whitens the body, so the two read as one event.
+func _draw_impact_spikes(r: float) -> void:
+	if _flash <= 0.4:
+		return
+	var k: float = (_flash - 0.4) / 0.6
+	var col := Color(1, 1, 1, k * 0.9)
+	var centre := Vector2(0, -r * 0.25)
+	var th: float = maxf(1.2, r * 0.11)
+	for i in range(8):
+		var a: float = TAU * float(i) / 8.0 + PI * 0.12
+		var dir := Vector2(cos(a), sin(a))
+		var d0: float = r * (1.15 + (1.0 - k) * 0.55)
+		draw_line(centre + dir * d0, centre + dir * (d0 + r * 0.5 * k), col, th)
 
 
 # One light direction for the whole game: upper left. The cast shadow leans away
@@ -100,42 +131,71 @@ func _draw_sheep(r: float) -> void:
 	draw_line(Vector2(r * 0.4, r * 0.7), Vector2(r * 0.4, r * 1.15), outline_color, 2.5)
 
 
+# A rounded pawn: narrow rounded shoulders flaring to a wide base, with a big
+# separate head. Reads far better at small sizes than the old cloak polygon.
+# grow > 0 inflates it evenly to produce the outline pass.
+func _pawn_body(r: float, grow: float, lean: float) -> PackedVector2Array:
+	var top: float = -r * 0.52 - grow
+	var bot: float = r * 0.95 + grow
+	var tw: float = r * 0.34 + grow
+	var bw: float = r * 0.62 + grow
+	var sh: float = r * 0.18
+	return PackedVector2Array([
+		Vector2(-bw, bot),
+		Vector2(-bw * 0.94, bot - r * 0.26),
+		Vector2(-tw - r * 0.05 + lean, top + sh),
+		Vector2(-tw * 0.92 + lean, top + sh * 0.3),
+		Vector2(-tw * 0.55 + lean, top),
+		Vector2(tw * 0.55 + lean, top),
+		Vector2(tw * 0.92 + lean, top + sh * 0.3),
+		Vector2(tw + r * 0.05 + lean, top + sh),
+		Vector2(bw * 0.94, bot - r * 0.26),
+		Vector2(bw, bot),
+	])
+
+
 func _draw_figure(r: float) -> void:
-	var sway: float = sin(_phase * 2.2) * r * 0.06
+	var lean: float = sin(_phase * 2.2) * r * 0.05
 	var body := _col()
-	# shoulders / cloak
-	var sh := PackedVector2Array([
-		Vector2(-r * 0.95, r * 0.15 + sway), Vector2(-r * 0.6, -r * 0.55),
-		Vector2(r * 0.6, -r * 0.55), Vector2(r * 0.95, r * 0.15 + sway),
-		Vector2(r * 0.55, r * 0.95), Vector2(-r * 0.55, r * 0.95),
-	])
-	draw_colored_polygon(sh, outline_color)
-	var sh_in := PackedVector2Array([
-		Vector2(-r * 0.72, r * 0.1 + sway), Vector2(-r * 0.45, -r * 0.4),
-		Vector2(r * 0.45, -r * 0.4), Vector2(r * 0.72, r * 0.1 + sway),
-		Vector2(r * 0.42, r * 0.75), Vector2(-r * 0.42, r * 0.75),
-	])
-	draw_colored_polygon(sh_in, body)
+	var shade := body.darkened(0.32)
+	var rim := body.lightened(0.6)
+	var top: float = -r * 0.52
+	var bot: float = r * 0.95
+	var tw: float = r * 0.34
+	var bw: float = r * 0.62
+	var head_c := Vector2(lean * 0.7, -r * 0.95)
+	var head_r: float = r * 0.36
+
+	# silhouette
+	draw_colored_polygon(_pawn_body(r, r * 0.13, lean), outline_color)
+	draw_circle(head_c, head_r + r * 0.13, outline_color)
+	# base fill
+	draw_colored_polygon(_pawn_body(r, 0.0, lean), body)
 	# form shadow on the away side
-	var shade := body.darkened(0.30)
 	draw_colored_polygon(PackedVector2Array([
-		Vector2(0, -r * 0.4), Vector2(r * 0.45, -r * 0.4),
-		Vector2(r * 0.72, r * 0.1 + sway), Vector2(r * 0.42, r * 0.75), Vector2(0, r * 0.75),
+		Vector2(lean * 0.3, top),
+		Vector2(tw * 0.55 + lean, top),
+		Vector2(tw * 0.92 + lean, top + r * 0.054),
+		Vector2(tw + r * 0.05 + lean, top + r * 0.18),
+		Vector2(bw * 0.94, bot - r * 0.26),
+		Vector2(bw, bot),
+		Vector2(lean * 0.3, bot),
 	]), shade)
 	# rim light down the lit edge
 	draw_colored_polygon(PackedVector2Array([
-		Vector2(-r * 0.72, r * 0.1 + sway), Vector2(-r * 0.45, -r * 0.4),
-		Vector2(-r * 0.28, -r * 0.4), Vector2(-r * 0.54, r * 0.08 + sway),
-		Vector2(-r * 0.26, r * 0.75), Vector2(-r * 0.42, r * 0.75),
-	]), body.lightened(0.55))
+		Vector2(-bw, bot),
+		Vector2(-bw * 0.94, bot - r * 0.26),
+		Vector2(-tw - r * 0.05 + lean, top + r * 0.18),
+		Vector2(-tw * 0.74 + lean, top + r * 0.16),
+		Vector2(-bw * 0.62, bot - r * 0.26),
+		Vector2(-bw * 0.66, bot),
+	]), rim)
 	# the head casts onto the shoulders
-	draw_set_transform(Vector2(r * 0.05, -r * 0.3), 0.0, Vector2(1.0, 0.42))
-	draw_circle(Vector2.ZERO, r * 0.4, Color(0, 0, 0, 0.20))
+	draw_set_transform(Vector2(lean * 0.5, top + r * 0.06), 0.0, Vector2(1.0, 0.4))
+	draw_circle(Vector2.ZERO, head_r * 0.92, Color(0, 0, 0, 0.22))
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	# head
-	var head := Vector2(0, -r * 0.62)
-	draw_circle(head, r * 0.46, outline_color)
-	draw_circle(head, r * 0.34, body.lightened(0.08))
-	draw_circle(head + Vector2(-r * 0.07, -r * 0.07), r * 0.26, body.lightened(0.34))
-	draw_arc(head + Vector2(-r * 0.05, -r * 0.05), r * 0.23,
-		PI * 1.02, PI * 1.62, 8, body.lightened(0.7), maxf(1.0, r * 0.08))
+	# head, lit from the upper left
+	draw_circle(head_c, head_r, body.lightened(0.06))
+	draw_circle(head_c + Vector2(-head_r * 0.2, -head_r * 0.2), head_r * 0.76, body.lightened(0.32))
+	draw_arc(head_c + Vector2(-head_r * 0.1, -head_r * 0.1), head_r * 0.64,
+		PI * 1.03, PI * 1.6, 10, rim, maxf(1.0, r * 0.09))

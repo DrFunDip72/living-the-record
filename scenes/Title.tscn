@@ -1,7 +1,34 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/Title.gd" id="1"]
 [ext_resource type="Material" path="res://shaders/BattlefieldMaterial.tres" id="2"]
+[ext_resource type="FontFile" path="res://fonts/Cinzel.ttf" id="3"]
+[ext_resource type="Script" path="res://scripts/common/GoldRule.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/common/ExpandIcon.gd" id="5"]
+
+[sub_resource type="StyleBoxFlat" id="PrimaryBtn"]
+bg_color = Color(0.84, 0.69, 0.33, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.97, 0.89, 0.63, 1)
+
+[sub_resource type="StyleBoxFlat" id="GhostBtn"]
+bg_color = Color(0.1, 0.09, 0.07, 0.35)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.64, 0.53, 0.28, 1)
 
 [node name="Title" type="Node2D"]
 script = ExtResource("1")
@@ -14,45 +41,124 @@ offset_bottom = 540.0
 material = ExtResource("2")
 color = Color(1, 1, 1, 1)
 
+[node name="Vignette" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 960.0
+offset_bottom = 540.0
+color = Color(0.02, 0.016, 0.03, 0.42)
+
 [node name="UI" type="CanvasLayer" parent="."]
+
+[node name="RuleTop" type="Control" parent="UI"]
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -165.0
+offset_top = 146.0
+offset_right = 165.0
+offset_bottom = 148.0
+script = ExtResource("4")
+center_pip = true
 
 [node name="TitleLabel" type="Label" parent="UI"]
 anchor_right = 1.0
-offset_top = 130.0
-offset_bottom = 200.0
-theme_override_font_sizes/font_size = 44
+offset_top = 162.0
+offset_bottom = 222.0
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 40
+theme_override_colors/font_color = Color(0.98, 0.93, 0.8, 1)
+theme_override_colors/font_shadow_color = Color(0.3, 0.2, 0.05, 0.75)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 3
+theme_override_constants/outline_size = 0
 horizontal_alignment = 1
-text = "Living the Record"
+text = "L I V I N G   T H E   R E C O R D"
+
+[node name="RuleBottom" type="Control" parent="UI"]
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -120.0
+offset_top = 232.0
+offset_right = 120.0
+offset_bottom = 234.0
+script = ExtResource("4")
 
 [node name="SubtitleLabel" type="Label" parent="UI"]
 anchor_right = 1.0
-offset_top = 205.0
-offset_bottom = 240.0
-theme_override_font_sizes/font_size = 18
+offset_top = 244.0
+offset_bottom = 266.0
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.73, 0.65, 0.47, 1)
+theme_override_constants/outline_size = 0
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 0
 horizontal_alignment = 1
-text = "Eight Book of Mormon games. Pick one and play."
+text = "E I G H T   B O O K   O F   M O R M O N   G A M E S"
 
 [node name="PlayButton" type="Button" parent="UI"]
-anchor_left = 0.38
-anchor_top = 0.55
-anchor_right = 0.62
-anchor_bottom = 0.65
-theme_override_font_sizes/font_size = 26
-text = "Play Games"
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -82.0
+offset_top = 318.0
+offset_right = 82.0
+offset_bottom = 356.0
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.13, 0.1, 0.03, 1)
+theme_override_colors/font_hover_color = Color(0.05, 0.04, 0.01, 1)
+theme_override_constants/outline_size = 0
+theme_override_styles/normal = SubResource("PrimaryBtn")
+theme_override_styles/hover = SubResource("PrimaryBtn")
+theme_override_styles/pressed = SubResource("PrimaryBtn")
+theme_override_styles/focus = SubResource("PrimaryBtn")
+text = "P L A Y"
 
 [node name="AboutButton" type="Button" parent="UI"]
-anchor_left = 0.4
-anchor_top = 0.68
-anchor_right = 0.6
-anchor_bottom = 0.75
-text = "About"
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -104.0
+offset_top = 366.0
+offset_right = 104.0
+offset_bottom = 396.0
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.8, 0.71, 0.49, 1)
+theme_override_colors/font_hover_color = Color(0.99, 0.93, 0.74, 1)
+theme_override_constants/outline_size = 0
+theme_override_styles/normal = SubResource("GhostBtn")
+theme_override_styles/hover = SubResource("GhostBtn")
+theme_override_styles/pressed = SubResource("GhostBtn")
+theme_override_styles/focus = SubResource("GhostBtn")
+text = "ABOUT THIS PROJECT"
+
+[node name="VerseLabel" type="Label" parent="UI"]
+anchor_right = 1.0
+offset_top = 474.0
+offset_bottom = 496.0
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.62, 0.56, 0.43, 1)
+theme_override_constants/outline_size = 0
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 0
+horizontal_alignment = 1
+text = "\"...these things are written that we may believe...\""
 
 [node name="FullscreenButton" type="Button" parent="UI"]
-anchor_left = 0.4
-anchor_top = 0.78
-anchor_right = 0.6
-anchor_bottom = 0.85
-text = "Fullscreen"
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -54.0
+offset_top = 12.0
+offset_right = -12.0
+offset_bottom = 54.0
+theme_override_constants/outline_size = 0
+theme_override_styles/normal = SubResource("GhostBtn")
+theme_override_styles/hover = SubResource("GhostBtn")
+theme_override_styles/pressed = SubResource("GhostBtn")
+theme_override_styles/focus = SubResource("GhostBtn")
+
+[node name="Glyph" type="Control" parent="UI/FullscreenButton"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("5")
 
 [node name="AboutPanel" type="Panel" parent="UI"]
 anchor_left = 0.15
@@ -60,17 +166,49 @@ anchor_top = 0.15
 anchor_right = 0.85
 anchor_bottom = 0.85
 
+[node name="AboutTitle" type="Label" parent="UI/AboutPanel"]
+anchor_right = 1.0
+offset_top = 22.0
+offset_bottom = 58.0
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 21
+theme_override_colors/font_color = Color(0.97, 0.91, 0.78, 1)
+theme_override_constants/outline_size = 0
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 0
+horizontal_alignment = 1
+text = "About This Project"
+
+[node name="AboutRule" type="Control" parent="UI/AboutPanel"]
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -110.0
+offset_top = 62.0
+offset_right = 110.0
+offset_bottom = 64.0
+script = ExtResource("4")
+
 [node name="AboutLabel" type="RichTextLabel" parent="UI/AboutPanel"]
-anchor_left = 0.08
-anchor_top = 0.1
-anchor_right = 0.92
-anchor_bottom = 0.82
-theme_override_font_sizes/normal_font_size = 18
+anchor_left = 0.09
+anchor_top = 0.2
+anchor_right = 0.91
+anchor_bottom = 0.8
+theme_override_font_sizes/normal_font_size = 17
+theme_override_colors/default_color = Color(0.88, 0.84, 0.76, 1)
+theme_override_constants/outline_size = 0
+theme_override_constants/line_separation = 4
 bbcode_enabled = false
 
 [node name="CloseButton" type="Button" parent="UI/AboutPanel"]
 anchor_left = 0.38
-anchor_top = 0.86
+anchor_top = 0.85
 anchor_right = 0.62
-anchor_bottom = 0.95
+anchor_bottom = 0.94
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.8, 0.71, 0.49, 1)
+theme_override_constants/outline_size = 0
+theme_override_styles/normal = SubResource("GhostBtn")
+theme_override_styles/hover = SubResource("GhostBtn")
+theme_override_styles/pressed = SubResource("GhostBtn")
+theme_override_styles/focus = SubResource("GhostBtn")
 text = "Close"
