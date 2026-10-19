@@ -105,6 +105,9 @@ func take_hit(amount: float) -> void:
 		return
 	hp -= amount
 	flash = 1.0
+	# parented to the arrows root so the number outlives a killing blow
+	Fx.damage_number(arrows_root if arrows_root != null else get_parent(),
+		position, int(round(amount)))
 	if hp <= 0.0:
 		dead = true
 		died.emit(self)

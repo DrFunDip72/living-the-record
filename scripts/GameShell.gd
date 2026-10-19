@@ -8,6 +8,7 @@ var current_instance: Node = null
 
 @onready var gameplay_root: Node2D = $GameplayRoot
 @onready var ui: CanvasLayer = $UI
+@onready var status_label: Label = $UI/StatusLabel
 @onready var title_label: Label = $UI/TitleLabel
 @onready var ref_label: Label = $UI/RefLabel
 @onready var body_label: RichTextLabel = $UI/BodyLabel
@@ -57,6 +58,7 @@ func _show_before() -> void:
 	end_buttons.visible = false
 	score_label.visible = false
 	play_button.visible = true
+	status_label.visible = false
 	title_label.text = level["name"]
 	ref_label.text = level["reference"] + "  |  " + level["tagline"]
 	body_label.text = level["before"]
@@ -93,14 +95,22 @@ func _on_game_finished(won: bool, score: int = -1) -> void:
 		score_label.visible = false
 
 	ref_label.text = level["reference"]
+	# The state goes in the eyebrow above the title so the heading stays the
+	# level's own name, and win and loss differ without two layouts.
+	status_label.visible = true
+	title_label.text = level["name"]
 	if won:
 		state = State.WON
-		title_label.text = level["name"] + " -- Complete"
+		status_label.text = "COMPLETE"
+		status_label.add_theme_color_override("font_color", Color(0.72, 0.6, 0.36, 1))
 		body_label.text = level["after"]
 	else:
 		state = State.LOST
-		title_label.text = level["name"] + (" -- Round Over" if score_key != "" else " -- You Did Not Make It")
-		body_label.text = level["lose_text"]
+		status_label.text = "ROUND OVER" if score_key != "" else "YOU DID NOT MAKE IT"
+		status_label.add_theme_color_override("font_color", Color(0.74, 0.44, 0.38, 1))
+		# every level has real loss text now, but never show an empty panel
+		var lose_text: String = str(level.get("lose_text", "")).strip_edges()
+		body_label.text = lose_text if lose_text != "" else level["after"]
 
 
 func _on_play_pressed() -> void:

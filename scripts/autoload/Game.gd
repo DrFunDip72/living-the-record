@@ -55,8 +55,8 @@ var levels: Array = [
 		"scene": "res://scenes/MiniGameTemple.tscn",
 		"before": "After escaping his brothers, Nephi leads his people to a new land and becomes their king. Once they are settled, he turns immediately to building a temple.\n\n\"...I, Nephi, did build a temple; and I did construct it after the manner of the temple of Solomon, save it were not built of so many precious things... nevertheless... I did build it...\"\n\nGather timber and stone, then carry them to the build site.",
 		"after": "Nephi didn't wait until he had everything Solomon had -- he built with what was actually available, because the temple mattered more than the excuse not to build it.\n\nWhat's something you've been waiting for 'ideal resources' to start, that you could actually begin now with what you have?",
-		"lose_text": "",
-		"score_key": "",
+		"lose_text": "The course gave way and the walls could rise no higher.\n\nTry again -- set each stone square on the one beneath it, and the height takes care of itself.",
+		"score_key": "temple_courses",
 		"color": Color(0.5, 0.45, 0.3, 1),
 	},
 	{

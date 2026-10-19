@@ -10,3 +10,4 @@ script = ExtResource("1")
 fill_color = Color(0.6, 0.55, 0.45, 1)
 outline_color = Color(0.25, 0.22, 0.15, 1)
 radius = 6.0
+style = "round"

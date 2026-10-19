@@ -12,6 +12,10 @@ const DRAW_TIME := 0.85
 const MIN_POWER := 0.3
 const NEAR_Y := 432.0
 const FAR_Y := 250.0
+# Nephi hunted until the camp was fed. Clearing this many animals is the win --
+# without it the hunt can only end in hunger and the reflection question after
+# the round is unreachable.
+const PROVISION_GOAL := 5
 
 var hunger: float = MAX_HUNGER
 var score: int = 0
@@ -196,15 +200,16 @@ func _say(text: String) -> void:
 func _update_hud() -> void:
 	hunger_bar.value = hunger
 	hunger_label.text = "Camp Provisions: %d%%" % int(round(hunger))
-	score_label.text = "Taken: %d    Score: %d" % [taken, score]
+	score_label.text = "Taken: %d / %d    Score: %d" % [taken, PROVISION_GOAL, score]
 
 
 func _finish() -> void:
 	finished = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	var won: bool = taken >= PROVISION_GOAL
 	var flash := ColorRect.new()
-	flash.color = Color(0.4, 0.1, 0.1, 0.45)
+	flash.color = Color(0.2, 0.4, 0.2, 0.35) if won else Color(0.4, 0.1, 0.1, 0.45)
 	flash.anchor_right = 1.0
 	flash.anchor_bottom = 1.0
 	add_child(flash)
-	get_tree().create_timer(0.45).timeout.connect(func(): game_finished.emit(false, score))
+	get_tree().create_timer(0.45).timeout.connect(func(): game_finished.emit(won, score))

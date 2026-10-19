@@ -47,17 +47,33 @@ func _col() -> Color:
 
 func _draw() -> void:
 	var r := radius
-	draw_circle(Vector2(0, r * 0.5), r * 0.85, Color(0, 0, 0, 0.22))
 	match style:
 		"sheep":
+			_draw_ground_shadow(r, 1.35)
 			_draw_sheep(r)
 		"diamond":
+			draw_circle(Vector2(0, r * 0.5), r * 0.85, Color(0, 0, 0, 0.22))
 			_draw_diamond(r)
 		"round":
+			draw_circle(Vector2(0, r * 0.5), r * 0.85, Color(0, 0, 0, 0.22))
 			draw_circle(Vector2.ZERO, r * 1.25, outline_color)
 			draw_circle(Vector2.ZERO, r, _col())
+			# lit from the upper left, same as every grounded shape
+			draw_circle(Vector2(-r * 0.22, -r * 0.22), r * 0.62, _col().lightened(0.28))
 		_:
+			_draw_ground_shadow(r, 1.0)
 			_draw_figure(r)
+
+
+# One light direction for the whole game: upper left. The cast shadow leans away
+# from it, the contact shadow stays tight under the feet so the unit reads as
+# standing on the ground instead of floating above it.
+func _draw_ground_shadow(r: float, spread: float) -> void:
+	draw_set_transform(Vector2(r * 0.40 * spread, r * 0.66), 0.0, Vector2(1.0, 0.30))
+	draw_circle(Vector2.ZERO, r * 1.18 * spread, Color(0, 0, 0, 0.17))
+	draw_set_transform(Vector2(0, r * 0.86), 0.0, Vector2(1.0, 0.24))
+	draw_circle(Vector2.ZERO, r * 0.60 * spread, Color(0, 0, 0, 0.30))
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func _draw_diamond(r: float) -> void:
@@ -100,6 +116,26 @@ func _draw_figure(r: float) -> void:
 		Vector2(r * 0.42, r * 0.75), Vector2(-r * 0.42, r * 0.75),
 	])
 	draw_colored_polygon(sh_in, body)
+	# form shadow on the away side
+	var shade := body.darkened(0.30)
+	draw_colored_polygon(PackedVector2Array([
+		Vector2(0, -r * 0.4), Vector2(r * 0.45, -r * 0.4),
+		Vector2(r * 0.72, r * 0.1 + sway), Vector2(r * 0.42, r * 0.75), Vector2(0, r * 0.75),
+	]), shade)
+	# rim light down the lit edge
+	draw_colored_polygon(PackedVector2Array([
+		Vector2(-r * 0.72, r * 0.1 + sway), Vector2(-r * 0.45, -r * 0.4),
+		Vector2(-r * 0.28, -r * 0.4), Vector2(-r * 0.54, r * 0.08 + sway),
+		Vector2(-r * 0.26, r * 0.75), Vector2(-r * 0.42, r * 0.75),
+	]), body.lightened(0.55))
+	# the head casts onto the shoulders
+	draw_set_transform(Vector2(r * 0.05, -r * 0.3), 0.0, Vector2(1.0, 0.42))
+	draw_circle(Vector2.ZERO, r * 0.4, Color(0, 0, 0, 0.20))
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# head
-	draw_circle(Vector2(0, -r * 0.62), r * 0.46, outline_color)
-	draw_circle(Vector2(0, -r * 0.62), r * 0.34, body.lightened(0.22))
+	var head := Vector2(0, -r * 0.62)
+	draw_circle(head, r * 0.46, outline_color)
+	draw_circle(head, r * 0.34, body.lightened(0.08))
+	draw_circle(head + Vector2(-r * 0.07, -r * 0.07), r * 0.26, body.lightened(0.34))
+	draw_arc(head + Vector2(-r * 0.05, -r * 0.05), r * 0.23,
+		PI * 1.02, PI * 1.62, 8, body.lightened(0.7), maxf(1.0, r * 0.08))

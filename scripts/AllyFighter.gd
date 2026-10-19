@@ -79,6 +79,9 @@ func set_buffed(value: bool) -> void:
 func take_damage(amount: int, from_pos: Vector2) -> void:
 	hp -= amount
 	visual.flash_white()
+	# numbers go to the game root so they survive this fighter being freed
+	var fx_parent: Node = get_parent().get_parent() if get_parent() and get_parent().get_parent() else get_parent()
+	Fx.damage_number(fx_parent, global_position, amount, Color(0.95, 0.55, 0.48, 1))
 	if hp <= 0:
 		defeated.emit()
 		queue_free()

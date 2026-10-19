@@ -9,6 +9,7 @@ const RELOAD_TIME := 0.7
 const STONES_PER_WAVE := 6
 const MAX_HP := 6
 const RETARGET_EVERY := 0.4
+const WAVES_TO_WIN := 5
 
 var score: int = 0
 var wave: int = 0
@@ -182,6 +183,12 @@ func _on_wave_cleared(index: int) -> void:
 		return
 	wave = index + 1
 	score += (index + 1) * 5
+	# Ammon's whole standing rested on not losing a single sheep. Holding the
+	# flock through every wave is the win -- without this the game can only end
+	# in failure, so the reflection question is never reachable.
+	if wave >= WAVES_TO_WIN:
+		_finish(true)
+		return
 	stones = STONES_PER_WAVE
 	weapon.kind = "sling"
 	weapon.start_spin()
@@ -283,7 +290,7 @@ func _melee_attack() -> void:
 
 
 func _update_hud() -> void:
-	score_label.text = "Score: %d    Wave %d" % [score, wave + 1]
+	score_label.text = "Score: %d    Wave %d / %d" % [score, wave + 1, WAVES_TO_WIN]
 	var sheep_left := get_tree().get_nodes_in_group("sheep").size()
 	flock_label.text = "Flock: %d" % sheep_left if carriers.is_empty() else "Flock: %d  (%d STOLEN!)" % [sheep_left, carriers.size()]
 	if stones > 0:
@@ -294,14 +301,14 @@ func _update_hud() -> void:
 	combo_label.text = "" if combo <= 1 else "Combo x%d" % combo
 
 
-func _finish() -> void:
+func _finish(won: bool = false) -> void:
 	finished = true
 	var flash := ColorRect.new()
-	flash.color = Color(1, 0.2, 0.2, 0.42)
+	flash.color = Color(0.35, 0.95, 0.5, 0.3) if won else Color(1, 0.2, 0.2, 0.42)
 	flash.anchor_right = 1.0
 	flash.anchor_bottom = 1.0
 	add_child(flash)
-	get_tree().create_timer(0.4).timeout.connect(func(): game_finished.emit(false, score))
+	get_tree().create_timer(0.4).timeout.connect(func(): game_finished.emit(won, score))
 
 
 func _on_touch_aim(_p: Vector2) -> void:

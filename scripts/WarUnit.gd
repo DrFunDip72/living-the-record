@@ -254,8 +254,13 @@ func _shoot(target, dmg: float) -> void:
 func take_hit(amount: float) -> void:
 	if dead:
 		return
-	hp -= amount * damage_taken_mult
+	var dealt: float = amount * damage_taken_mult
+	hp -= dealt
 	flash = 1.0
+	# numbers go to the arrows root so they outlive the unit on a killing blow
+	var fx_parent: Node = arrows_root if arrows_root != null else get_parent()
+	Fx.damage_number(fx_parent, global_position, int(round(dealt)),
+		Color(0.95, 0.79, 0.42, 1) if team == 1 else Color(0.95, 0.55, 0.48, 1))
 	if concealed:
 		spring()
 	# your men fight back where they stand; only the enemy rushes in when struck
@@ -302,20 +307,67 @@ func _draw() -> void:
 	if selected:
 		draw_arc(Vector2(0, 2), 15.0, 0.0, TAU, 20, Color(0.6, 1.0, 0.6, 0.9), 2.0)
 
-	draw_circle(Vector2(0, 5), 9.0, Color(0, 0, 0, 0.22 * a))
-	# body
-	var body := PackedVector2Array([
-		Vector2(-8, 8 + wob), Vector2(-6, -4), Vector2(6, -4), Vector2(8, 8 + wob),
-	])
+	# ground shadow: a tight contact patch plus a cast shadow leaning away from
+	# the light, which sits upper left for every shape in the game
+	draw_set_transform(Vector2(3.5, 6.0), 0.0, Vector2(1.0, 0.30))
+	draw_circle(Vector2.ZERO, 11.0, Color(0, 0, 0, 0.17 * a))
+	draw_set_transform(Vector2(0, 7.5), 0.0, Vector2(1.0, 0.26))
+	draw_circle(Vector2.ZERO, 6.5, Color(0, 0, 0, 0.28 * a))
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
 	var ink := INK
 	ink.a = a
+	var shade := col.darkened(0.30)
+	shade.a = a
+	var rim := col.lightened(0.55)
+	rim.a = a
+	var b: float = 8.0 + wob  # shared bottom edge
+
+	# One silhouette per role, so the companies read apart in solid black
+	var body: PackedVector2Array
+	var body_in: PackedVector2Array
+	var form: PackedVector2Array
+	var lit: PackedVector2Array
+	var head_y: float
+	var head_r: float
+	match kind:
+		"spear":  # tall and narrow
+			body = PackedVector2Array([Vector2(-6, b), Vector2(-5, -8), Vector2(5, -8), Vector2(6, b)])
+			body_in = PackedVector2Array([Vector2(-4.5, b - 2), Vector2(-3.5, -6), Vector2(3.5, -6), Vector2(4.5, b - 2)])
+			form = PackedVector2Array([Vector2(0, -6), Vector2(3.5, -6), Vector2(4.5, b - 2), Vector2(0, b - 2)])
+			lit = PackedVector2Array([Vector2(-4.5, b - 2), Vector2(-3.5, -6), Vector2(-2.3, -6), Vector2(-3.2, b - 2)])
+			head_y = -12.0
+			head_r = 4.6
+		"archer":  # crouched, round-shouldered
+			body = PackedVector2Array([Vector2(-8, b), Vector2(-7, -1), Vector2(-3, -4), Vector2(3, -4), Vector2(7, -1), Vector2(8, b)])
+			body_in = PackedVector2Array([Vector2(-6, b - 2), Vector2(-5, -0.5), Vector2(-2, -2.5), Vector2(2, -2.5), Vector2(5, -0.5), Vector2(6, b - 2)])
+			form = PackedVector2Array([Vector2(0, -2.5), Vector2(2, -2.5), Vector2(5, -0.5), Vector2(6, b - 2), Vector2(0, b - 2)])
+			lit = PackedVector2Array([Vector2(-6, b - 2), Vector2(-5, -0.5), Vector2(-2, -2.5), Vector2(-0.9, -2.5), Vector2(-3.7, -0.2), Vector2(-4.7, b - 2)])
+			head_y = -7.5
+			head_r = 4.8
+		_:  # sword: wide, flat-topped, carries a shield
+			body = PackedVector2Array([Vector2(-9, b), Vector2(-8, -5), Vector2(8, -5), Vector2(9, b)])
+			body_in = PackedVector2Array([Vector2(-7, b - 2), Vector2(-6, -3), Vector2(6, -3), Vector2(7, b - 2)])
+			form = PackedVector2Array([Vector2(0, -3), Vector2(6, -3), Vector2(7, b - 2), Vector2(0, b - 2)])
+			lit = PackedVector2Array([Vector2(-7, b - 2), Vector2(-6, -3), Vector2(-4.4, -3), Vector2(-5.3, b - 2)])
+			head_y = -9.0
+			head_r = 5.2
 	draw_colored_polygon(body, ink)
-	var body_in := PackedVector2Array([
-		Vector2(-6, 6 + wob), Vector2(-4, -2), Vector2(4, -2), Vector2(6, 6 + wob),
-	])
 	draw_colored_polygon(body_in, col)
-	draw_circle(Vector2(0, -8), 5.5, ink)
-	draw_circle(Vector2(0, -8), 4.0, col.lightened(0.2))
+	draw_colored_polygon(form, shade)
+	draw_colored_polygon(lit, rim)
+
+	if kind == "sword":
+		draw_colored_polygon(PackedVector2Array([
+			Vector2(-15, -4), Vector2(-8, -6.5), Vector2(-8, 7), Vector2(-15, 4.5)]), ink)
+		draw_colored_polygon(PackedVector2Array([
+			Vector2(-13.8, -3), Vector2(-9.2, -5), Vector2(-9.2, 5.8), Vector2(-13.8, 3.6)]), col.darkened(0.1))
+		draw_line(Vector2(-13.8, -1.2), Vector2(-9.2, -2.6), rim, 1.2)
+
+	# head, lit from the same upper left
+	draw_circle(Vector2(0, head_y), head_r + 1.4, ink)
+	draw_circle(Vector2(0, head_y), head_r, col.lightened(0.08))
+	draw_circle(Vector2(-head_r * 0.22, head_y - head_r * 0.22), head_r * 0.72, col.lightened(0.34))
 
 	# weapon
 	var swing_off: float = swing * 6.0
